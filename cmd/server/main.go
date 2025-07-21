@@ -1,4 +1,4 @@
-package movieticket
+package main
 
 import (
 	"movie-ticket/config"
@@ -16,5 +16,5 @@ func main() {
 
 	router.InitRouter(r)
 
-	r.Run(":", config.Get("PORT"))
+	r.Run(":" + config.Get("PORT"))
 }

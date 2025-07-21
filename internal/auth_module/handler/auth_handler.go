@@ -68,7 +68,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	signedToken, err := token.SignedString([]byte(config.Get("JWT_SECRET")))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token"})
 		return
 	}
 
