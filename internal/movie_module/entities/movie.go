@@ -14,13 +14,6 @@ type Movies struct {
 	Duration_Minutes int       `gorm:"type:int not null" json:"duration_minutes" binding:"required"`
 	Rating           string    `gorm:"type:varchar(10)" json:"rating" binding:"required"`
 	Postre_Url       string    `gorm:"type:varchar(500)" json:"poster_url" binding:"required"`
-	Banner_Url       string    `gorm:"type:varchar(500)" json:"banner_url"`
-	Trailer_Url      string    `gorm:"type:varchar(500)" json:"trailer_url"`
-	Direction        string    `gorm:"type:varchar(100)" json:"direction"`
-	Cast             string    `gorm:"type:text" json:"cast"`
-	Release_Date     time.Time `json:"release_date"`
-	End_Date         time.Time `json:"end_date"`
-	Is_Active        bool      `gorm:"type:boolean default true" json:"is_active"`
 	Created_At       time.Time `gorm:"autoCreateTime" json:"created_at"`
 	Updated_At       time.Time `gorm:"autoCreateTime; autoUpdateTime" json:"updated_at"`
 }

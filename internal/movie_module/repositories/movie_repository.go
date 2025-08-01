@@ -1,11 +1,9 @@
 package repositories
 
 import (
-	"context"
 	"errors"
 	"movie-ticket/infra/postgres"
 	"movie-ticket/internal/movie_module/entities"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -15,7 +13,8 @@ type MovieRepository interface {
 	CreateMovies(input *entities.Movies) error
 	GetMovies() ([]entities.Movies, error)
 	GetMovieById(id uuid.UUID) ([]entities.Movies, error)
-	GetComingSoonMovies(ctx context.Context, limit int) ([]entities.Movies, error)
+	UpdateMovies(id uuid.UUID, input *entities.Movies) error
+	DeleteMovie(id uuid.UUID) error
 }
 
 type movieRepo struct{}
@@ -52,19 +51,31 @@ func (r *movieRepo) GetMovieById(id uuid.UUID) ([]entities.Movies, error) {
 	return movies, nil
 }
 
-func (r *movieRepo) GetComingSoonMovies(ctx context.Context, limit int) ([]entities.Movies, error) {
-	var movies []entities.Movies
-
-	query := postgres.DB.WithContext(ctx).
-		Where("is_active = ?", true).
-		Where("release_date > ?", time.Now()).
-		Order("release_date ASC")
-
-	if limit > 0 {
-		query = query.Limit(limit)
+func (r *movieRepo) UpdateMovies(id uuid.UUID, input *entities.Movies) error {
+	updates := map[string]interface{}{
+		"title":            input.Title,
+		"description":      input.Description,
+		"genre":            input.Genre,
+		"duration_minutes": input.Duration_Minutes,
+		"rating":           input.Rating,
+		"postre_url":       input.Postre_Url,
 	}
 
-	err := query.Find(&movies).Error
+	result := postgres.DB.Model(&entities.Movies{}).
+		Where("id = ?", id).
+		Updates(updates)
 
-	return movies, err
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("failed when updating data")
+	}
+
+	return nil
+}
+
+func (r *movieRepo) DeleteMovie(id uuid.UUID) error {
+	return postgres.DB.Delete(&entities.Movies{}, "id = ?", id).Error
 }
