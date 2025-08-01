@@ -12,6 +12,7 @@ import (
 type MovieRepository interface {
 	CreateMovies(input *entities.Movies) error
 	GetMovies() ([]entities.Movies, error)
+	GetByTitle(input string) ([]entities.Movies, error)
 	GetMovieById(id uuid.UUID) ([]entities.Movies, error)
 	UpdateMovies(id uuid.UUID, input *entities.Movies) error
 	DeleteMovie(id uuid.UUID) error
@@ -39,6 +40,16 @@ func (r *movieRepo) GetMovies() ([]entities.Movies, error) {
 	return movies, nil
 }
 
+func (r *movieRepo) GetByTitle(input string) ([]entities.Movies, error) {
+	var movies []entities.Movies
+
+	if err := postgres.DB.Where("title = ?", input).Find(&movies).Error; err != nil {
+		return nil, errors.New("no available movies")
+	}
+
+	return movies, nil
+}
+
 func (r *movieRepo) GetMovieById(id uuid.UUID) ([]entities.Movies, error) {
 	var movies []entities.Movies
 
@@ -58,7 +69,7 @@ func (r *movieRepo) UpdateMovies(id uuid.UUID, input *entities.Movies) error {
 		"genre":            input.Genre,
 		"duration_minutes": input.Duration_Minutes,
 		"rating":           input.Rating,
-		"postre_url":       input.Postre_Url,
+		"postre_url":       input.Poster_Url,
 	}
 
 	result := postgres.DB.Model(&entities.Movies{}).

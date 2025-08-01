@@ -13,7 +13,7 @@ type Movies struct {
 	Genre            string    `gorm:"type:varchar(100)" json:"genre" binding:"required"`
 	Duration_Minutes int       `gorm:"type:int not null" json:"duration_minutes" binding:"required"`
 	Rating           string    `gorm:"type:varchar(10)" json:"rating" binding:"required"`
-	Postre_Url       string    `gorm:"type:varchar(500)" json:"poster_url" binding:"required"`
+	Poster_Url       string    `gorm:"type:varchar(500)" json:"poster_url" binding:"required"`
 	Created_At       time.Time `gorm:"autoCreateTime" json:"created_at"`
 	Updated_At       time.Time `gorm:"autoCreateTime; autoUpdateTime" json:"updated_at"`
 }
