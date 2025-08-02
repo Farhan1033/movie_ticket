@@ -180,7 +180,7 @@ func (s *movieSvc) DeleteMovie(id string) error {
 // Helper
 func (s *movieSvc) validateBusinessRules(req *dto.CreateMovieRequest) error {
 	if _, err := url.Parse(req.Poster_Url); err != nil {
-		return fmt.Errorf("invalid poster URL format: %w", err)
+		return fmt.Errorf("%w, %v", customerror.ErrInvalidPosterUrl, err)
 	}
 
 	if req.Duration_Minutes < 1 || req.Duration_Minutes > 600 {
@@ -230,7 +230,7 @@ func (s *movieSvc) formatValidationError(err error) error {
 func (s *movieSvc) validateUpdatedMovie(req *dto.UpdateMovieRequest) error {
 	if req.Poster_Url != nil {
 		if _, err := url.Parse(*req.Poster_Url); err != nil {
-			return fmt.Errorf("invalid poster URL format: %w", err)
+			return fmt.Errorf("%w, %v", customerror.ErrInvalidPosterUrl, err)
 		}
 	}
 

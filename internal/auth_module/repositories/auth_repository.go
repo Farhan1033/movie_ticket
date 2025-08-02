@@ -29,7 +29,7 @@ func (r *authRepo) FindByEmail(email string) (*entities.User, error) {
 	err := postgres.DB.Where("email = ?", email).First(&user).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New("email not found")
+		return nil, nil
 	}
 
 	return &user, err

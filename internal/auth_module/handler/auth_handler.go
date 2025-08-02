@@ -17,8 +17,8 @@ type AuthHandler struct {
 
 func NewAuthHandler(r *gin.RouterGroup, svc services.AuthService) {
 	h := AuthHandler{svc: svc}
-	r.Group("/register", h.Register)
-	r.Group("/login", h.Login)
+	r.POST("/register", h.Register)
+	r.POST("/login", h.Login)
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {

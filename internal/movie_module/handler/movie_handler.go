@@ -15,12 +15,12 @@ type MovieHandler struct {
 
 func NewMovieHandlerAdmin(r *gin.RouterGroup, svc services.MoviesService) {
 	h := MovieHandler{svc: svc}
-	r.Group("/create-movie", h.Create)
+	r.POST("/create-movie", h.Create)
 }
 
 func NewMoviehandlerUser(r *gin.RouterGroup, svc services.MoviesService) {
 	h := MovieHandler{svc: svc}
-	r.Group("/get-movie", h.Get)
+	r.GET("/get-movie", h.Get)
 }
 
 func (h *MovieHandler) Create(c *gin.Context) {
@@ -36,6 +36,8 @@ func (h *MovieHandler) Create(c *gin.Context) {
 		case errors.Is(err, customerror.ErrMovieExists):
 			c.JSON(409, gin.H{"error": err.Error()})
 		case errors.Is(err, customerror.ErrInvalidInput):
+			c.JSON(400, gin.H{"error": err.Error()})
+		case errors.Is(err, customerror.ErrInvalidPosterUrl):
 			c.JSON(400, gin.H{"error": err.Error()})
 		default:
 			c.JSON(500, gin.H{"error": "internal server error"})

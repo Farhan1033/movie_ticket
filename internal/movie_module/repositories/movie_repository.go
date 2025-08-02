@@ -34,7 +34,7 @@ func (r *movieRepo) GetMovies() ([]entities.Movies, error) {
 	err := postgres.DB.Find(&movies).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New("no available movies")
+		return nil, nil
 	}
 
 	return movies, nil
@@ -43,8 +43,8 @@ func (r *movieRepo) GetMovies() ([]entities.Movies, error) {
 func (r *movieRepo) GetByTitle(input string) ([]entities.Movies, error) {
 	var movies []entities.Movies
 
-	if err := postgres.DB.Where("title = ?", input).Find(&movies).Error; err != nil {
-		return nil, errors.New("no available movies")
+	if err := postgres.DB.Where("title = ?", input).First(&movies).Error; err != nil {
+		return nil, nil
 	}
 
 	return movies, nil

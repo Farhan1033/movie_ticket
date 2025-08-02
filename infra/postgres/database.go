@@ -5,6 +5,7 @@ import (
 	"log"
 	"movie-ticket/config"
 	"movie-ticket/internal/auth_module/entities"
+	movie "movie-ticket/internal/movie_module/entities"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,7 +30,7 @@ func InitDB() {
 		log.Fatal("failed to connect database :", err)
 	}
 
-	err = DB.AutoMigrate(&entities.User{})
+	err = DB.AutoMigrate(&entities.User{}, &movie.Movies{})
 	if err != nil {
 		log.Fatal("failed to migrate :", err)
 	}
