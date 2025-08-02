@@ -1,4 +1,4 @@
-package dto
+package customerror
 
 import "errors"
 

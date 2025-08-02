@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	customerror "movie-ticket/internal/movie_module/custom_error"
 	"movie-ticket/internal/movie_module/dto"
 	"movie-ticket/internal/movie_module/entities"
 	"movie-ticket/internal/movie_module/repositories"
@@ -46,11 +47,11 @@ func (s *movieSvc) GetMovies(page, limit int) ([]*dto.MovieResponse, error) {
 	movies, err := s.repo.GetMovies()
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", dto.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
 	}
 
 	if len(movies) == 0 {
-		return nil, dto.ErrMovieNotFound
+		return nil, customerror.ErrMovieNotFound
 	}
 
 	response := make([]*dto.MovieResponse, len(movies))
@@ -64,16 +65,16 @@ func (s *movieSvc) GetMovies(page, limit int) ([]*dto.MovieResponse, error) {
 func (s *movieSvc) GetMovieById(id string) (*dto.MovieResponse, error) {
 	movieId, err := uuid.Parse(id)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %v", dto.ErrInvalidMovieId, err)
+		return nil, fmt.Errorf("%w, %v", customerror.ErrInvalidMovieId, err)
 	}
 
 	movie, err := s.repo.GetMovieById(movieId)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", dto.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
 	}
 
 	if movie == nil {
-		return nil, dto.ErrMovieNotFound
+		return nil, customerror.ErrMovieNotFound
 	}
 
 	return s.toMovieResponse(movie), nil
@@ -81,7 +82,7 @@ func (s *movieSvc) GetMovieById(id string) (*dto.MovieResponse, error) {
 
 func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse, error) {
 	if req == nil {
-		return nil, dto.ErrInvalidInput
+		return nil, customerror.ErrInvalidInput
 	}
 
 	if err := s.validator.Struct(req); err != nil {
@@ -94,7 +95,7 @@ func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse,
 
 	existing, _ := s.repo.GetByTitle(req.Title)
 	if existing != nil {
-		return nil, dto.ErrMovieExists
+		return nil, customerror.ErrMovieExists
 	}
 
 	movie := &entities.Movies{
@@ -110,7 +111,7 @@ func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse,
 	}
 
 	if err := s.repo.CreateMovies(movie); err != nil {
-		return nil, fmt.Errorf("%w: %v", dto.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
 	}
 
 	return s.toMovieResponse(movie), nil
@@ -119,11 +120,11 @@ func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse,
 func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error) {
 	movieId, err := uuid.Parse(id)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %v", dto.ErrInvalidMovieId, err)
+		return nil, fmt.Errorf("%w, %v", customerror.ErrInvalidMovieId, err)
 	}
 
 	if req != nil {
-		return nil, dto.ErrInvalidInput
+		return nil, customerror.ErrInvalidInput
 	}
 
 	if err := s.validator.Struct(req); err != nil {
@@ -132,11 +133,11 @@ func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.Mov
 
 	existingMovie, err := s.repo.GetMovieById(movieId)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %v", dto.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w, %v", customerror.ErrDatabaseError, err)
 	}
 
 	if existingMovie == nil {
-		return nil, dto.ErrMovieNotFound
+		return nil, customerror.ErrMovieNotFound
 	}
 
 	updateMovie := *existingMovie
@@ -148,7 +149,7 @@ func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.Mov
 	}
 
 	if err := s.repo.UpdateMovies(movieId, &updateMovie); err != nil {
-		return nil, fmt.Errorf("%w, %v", dto.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w, %v", customerror.ErrDatabaseError, err)
 	}
 
 	return s.toMovieResponse(&updateMovie), nil
@@ -157,20 +158,20 @@ func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.Mov
 func (s *movieSvc) DeleteMovie(id string) error {
 	movieId, err := uuid.Parse(id)
 	if err != nil {
-		return fmt.Errorf("%w, %v", dto.ErrInvalidMovieId, err)
+		return fmt.Errorf("%w, %v", customerror.ErrInvalidMovieId, err)
 	}
 
 	movie, err := s.repo.GetMovieById(movieId)
 	if err != nil {
-		return fmt.Errorf("%w, %v", dto.ErrDatabaseError, err)
+		return fmt.Errorf("%w, %v", customerror.ErrDatabaseError, err)
 	}
 
 	if movie == nil {
-		return dto.ErrMovieNotFound
+		return customerror.ErrMovieNotFound
 	}
 
 	if err := s.repo.DeleteMovie(movieId); err != nil {
-		return fmt.Errorf("%w, %v", dto.ErrDatabaseError, err)
+		return fmt.Errorf("%w, %v", customerror.ErrDatabaseError, err)
 	}
 
 	return nil
