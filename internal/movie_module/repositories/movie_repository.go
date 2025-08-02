@@ -13,7 +13,7 @@ type MovieRepository interface {
 	CreateMovies(input *entities.Movies) error
 	GetMovies() ([]entities.Movies, error)
 	GetByTitle(input string) ([]entities.Movies, error)
-	GetMovieById(id uuid.UUID) ([]entities.Movies, error)
+	GetMovieById(id uuid.UUID) (*entities.Movies, error)
 	UpdateMovies(id uuid.UUID, input *entities.Movies) error
 	DeleteMovie(id uuid.UUID) error
 }
@@ -50,8 +50,8 @@ func (r *movieRepo) GetByTitle(input string) ([]entities.Movies, error) {
 	return movies, nil
 }
 
-func (r *movieRepo) GetMovieById(id uuid.UUID) ([]entities.Movies, error) {
-	var movies []entities.Movies
+func (r *movieRepo) GetMovieById(id uuid.UUID) (*entities.Movies, error) {
+	var movies *entities.Movies
 
 	err := postgres.DB.Where("id = ?", id).Find(&movies).Error
 

@@ -16,6 +16,10 @@ import (
 
 type MoviesService interface {
 	CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse, error)
+	GetMovies(page, limit int) ([]*dto.MovieResponse, error)
+	GetMovieById(id string) (*dto.MovieResponse, error)
+	UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error)
+	DeleteMovie(id string) error
 }
 
 type movieSvc struct {
@@ -28,6 +32,51 @@ func NewMoviesService(r repositories.MovieRepository) MoviesService {
 		repo:      r,
 		validator: validator.New(),
 	}
+}
+
+func (s *movieSvc) GetMovies(page, limit int) ([]*dto.MovieResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	movies, err := s.repo.GetMovies()
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", dto.ErrDatabaseError, err)
+	}
+
+	if len(movies) == 0 {
+		return nil, dto.ErrMovieNotFound
+	}
+
+	response := make([]*dto.MovieResponse, len(movies))
+	for i, movie := range movies {
+		response[i] = s.toMovieResponse(&movie)
+	}
+
+	return response, nil
+}
+
+func (s *movieSvc) GetMovieById(id string) (*dto.MovieResponse, error) {
+	movieId, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("%w, %v", dto.ErrInvalidMovieId, err)
+	}
+
+	movie, err := s.repo.GetMovieById(movieId)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", dto.ErrDatabaseError, err)
+	}
+
+	if movie == nil {
+		return nil, dto.ErrMovieNotFound
+	}
+
+	return s.toMovieResponse(movie), nil
 }
 
 func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse, error) {
@@ -67,6 +116,67 @@ func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse,
 	return s.toMovieResponse(movie), nil
 }
 
+func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error) {
+	movieId, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("%w, %v", dto.ErrInvalidMovieId, err)
+	}
+
+	if req != nil {
+		return nil, dto.ErrInvalidInput
+	}
+
+	if err := s.validator.Struct(req); err != nil {
+		return nil, s.formatValidationError(err)
+	}
+
+	existingMovie, err := s.repo.GetMovieById(movieId)
+	if err != nil {
+		return nil, fmt.Errorf("%w, %v", dto.ErrDatabaseError, err)
+	}
+
+	if existingMovie == nil {
+		return nil, dto.ErrMovieNotFound
+	}
+
+	updateMovie := *existingMovie
+	s.applyUpdates(&updateMovie, req)
+	updateMovie.Updated_At = time.Now()
+
+	if err := s.validateUpdatedMovie(req); err != nil {
+		return nil, err
+	}
+
+	if err := s.repo.UpdateMovies(movieId, &updateMovie); err != nil {
+		return nil, fmt.Errorf("%w, %v", dto.ErrDatabaseError, err)
+	}
+
+	return s.toMovieResponse(&updateMovie), nil
+}
+
+func (s *movieSvc) DeleteMovie(id string) error {
+	movieId, err := uuid.Parse(id)
+	if err != nil {
+		return fmt.Errorf("%w, %v", dto.ErrInvalidMovieId, err)
+	}
+
+	movie, err := s.repo.GetMovieById(movieId)
+	if err != nil {
+		return fmt.Errorf("%w, %v", dto.ErrDatabaseError, err)
+	}
+
+	if movie == nil {
+		return dto.ErrMovieNotFound
+	}
+
+	if err := s.repo.DeleteMovie(movieId); err != nil {
+		return fmt.Errorf("%w, %v", dto.ErrDatabaseError, err)
+	}
+
+	return nil
+}
+
+// Helper
 func (s *movieSvc) validateBusinessRules(req *dto.CreateMovieRequest) error {
 	if _, err := url.Parse(req.Poster_Url); err != nil {
 		return fmt.Errorf("invalid poster URL format: %w", err)
@@ -114,4 +224,35 @@ func (s *movieSvc) formatValidationError(err error) error {
 	}
 
 	return fmt.Errorf("validation failed: %s", strings.Join(errorMessages, ", "))
+}
+
+func (s *movieSvc) validateUpdatedMovie(req *dto.UpdateMovieRequest) error {
+	if req.Poster_Url != nil {
+		if _, err := url.Parse(*req.Poster_Url); err != nil {
+			return fmt.Errorf("invalid poster URL format: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *movieSvc) applyUpdates(movie *entities.Movies, req *dto.UpdateMovieRequest) {
+	if req.Title != nil {
+		movie.Title = strings.TrimSpace(*req.Title)
+	}
+	if req.Description != nil {
+		movie.Description = strings.TrimSpace(*req.Description)
+	}
+	if req.Genre != nil {
+		movie.Genre = strings.TrimSpace(*req.Genre)
+	}
+	if req.Duration_Minutes != nil {
+		movie.Duration_Minutes = *req.Duration_Minutes
+	}
+	if req.Rating != nil {
+		movie.Rating = *req.Rating
+	}
+	if req.Poster_Url != nil {
+		movie.Poster_Url = *req.Poster_Url
+	}
 }
