@@ -13,6 +13,7 @@ import (
 type StudioRepository interface {
 	Create(input *entities.Studio) error
 	Get() ([]entities.Studio, error)
+	GetByName(name string) (*entities.Studio, error)
 	GetById(id uuid.UUID) (*entities.Studio, error)
 	Update(id uuid.UUID, input *entities.Studio) error
 	Delete(id uuid.UUID) error
@@ -38,6 +39,18 @@ func (r *studioRepo) Get() ([]entities.Studio, error) {
 	}
 
 	return studios, nil
+}
+
+func (r *studioRepo) GetByName(name string) (*entities.Studio, error) {
+	var studio *entities.Studio
+
+	err := postgres.DB.Where("name = ?", name).First(studio).Error
+
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	return studio, nil
 }
 
 func (r *studioRepo) GetById(id uuid.UUID) (*entities.Studio, error) {
