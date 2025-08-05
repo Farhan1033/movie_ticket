@@ -64,6 +64,7 @@ func (s *studioSvc) Create(req *dto.CreateStudioRequest) (*dto.StudioResponse, e
 	return s.toStudioResponse(studios), nil
 }
 
+// Helper Service
 func (s *studioSvc) toStudioResponse(studio *entities.Studio) *dto.StudioResponse {
 	return &dto.StudioResponse{
 		ID:            studio.ID,
