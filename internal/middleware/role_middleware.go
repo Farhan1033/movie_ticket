@@ -2,25 +2,36 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AdminOnly() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		role, exists := ctx.Get("role")
-		if !exists || role != "admin" {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Forbidden: Admin onlys"})
+func GinRoleChecker(roles ...string) gin.HandlerFunc {
+	// Bikin map untuk lookup lebih cepat
+	roleMap := make(map[string]struct{}, len(roles))
+	for _, r := range roles {
+		roleMap[strings.ToLower(r)] = struct{}{}
+	}
+
+	return func(c *gin.Context) {
+		userRole, exists := c.Get(ContextKeyRole)
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Role not found in context"})
 			return
 		}
-	}
-}
 
-func UserOnly() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		role, exists := ctx.Get("role")
-		if !exists || role != "user" {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Foribidden: User onlys"})
+		roleStr, ok := userRole.(string)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid role type in context"})
+			return
 		}
+
+		if _, allowed := roleMap[strings.ToLower(roleStr)]; allowed {
+			c.Next()
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access forbidden for role: " + roleStr})
 	}
 }

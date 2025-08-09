@@ -9,4 +9,5 @@ var (
 	ErrDatabaseError    = errors.New("database operation failed")
 	ErrInvalidMovieId   = errors.New("invalid movie id format")
 	ErrInvalidPosterUrl = errors.New("invalid poster URL format")
+	ErrUnauthorizedUser = errors.New("forbidden user")
 )

@@ -16,7 +16,7 @@ import (
 )
 
 type MoviesService interface {
-	CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse, error)
+	CreateMovie(role string, req *dto.CreateMovieRequest) (*dto.MovieResponse, error)
 	GetMovies(page, limit int) ([]*dto.MovieResponse, error)
 	GetMovieById(id string) (*dto.MovieResponse, error)
 	UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error)
@@ -65,7 +65,7 @@ func (s *movieSvc) GetMovies(page, limit int) ([]*dto.MovieResponse, error) {
 func (s *movieSvc) GetMovieById(id string) (*dto.MovieResponse, error) {
 	movieId, err := uuid.Parse(id)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %v", customerror.ErrInvalidMovieId, err)
+		return nil, fmt.Errorf("%w: %v", customerror.ErrInvalidMovieId, err)
 	}
 
 	movie, err := s.repo.GetMovieById(movieId)
@@ -80,9 +80,13 @@ func (s *movieSvc) GetMovieById(id string) (*dto.MovieResponse, error) {
 	return s.toMovieResponse(movie), nil
 }
 
-func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse, error) {
+func (s *movieSvc) CreateMovie(role string, req *dto.CreateMovieRequest) (*dto.MovieResponse, error) {
+	if role != "admin" {
+		return nil, fmt.Errorf("%w", customerror.ErrUnauthorizedUser)
+	}
+
 	if req == nil {
-		return nil, customerror.ErrInvalidInput
+		return nil, fmt.Errorf("%w", customerror.ErrInvalidInput)
 	}
 
 	if err := s.validator.Struct(req); err != nil {
@@ -95,7 +99,7 @@ func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse,
 
 	existing, _ := s.repo.GetByTitle(req.Title)
 	if existing != nil {
-		return nil, customerror.ErrMovieExists
+		return nil, fmt.Errorf("%w: %v", customerror.ErrMovieExists, existing)
 	}
 
 	movie := &entities.Movies{
@@ -111,7 +115,7 @@ func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse,
 	}
 
 	if err := s.repo.CreateMovies(movie); err != nil {
-		return nil, fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w", customerror.ErrDatabaseError)
 	}
 
 	return s.toMovieResponse(movie), nil
@@ -120,7 +124,7 @@ func (s *movieSvc) CreateMovie(req *dto.CreateMovieRequest) (*dto.MovieResponse,
 func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error) {
 	movieId, err := uuid.Parse(id)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %v", customerror.ErrInvalidMovieId, err)
+		return nil, fmt.Errorf("%w: %v", customerror.ErrInvalidMovieId, err)
 	}
 
 	if req != nil {
@@ -133,7 +137,7 @@ func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.Mov
 
 	existingMovie, err := s.repo.GetMovieById(movieId)
 	if err != nil {
-		return nil, fmt.Errorf("%w, %v", customerror.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
 	}
 
 	if existingMovie == nil {
@@ -149,7 +153,7 @@ func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.Mov
 	}
 
 	if err := s.repo.UpdateMovies(movieId, &updateMovie); err != nil {
-		return nil, fmt.Errorf("%w, %v", customerror.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
 	}
 
 	return s.toMovieResponse(&updateMovie), nil
@@ -158,12 +162,12 @@ func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.Mov
 func (s *movieSvc) DeleteMovie(id string) error {
 	movieId, err := uuid.Parse(id)
 	if err != nil {
-		return fmt.Errorf("%w, %v", customerror.ErrInvalidMovieId, err)
+		return fmt.Errorf("%w: %v", customerror.ErrInvalidMovieId, err)
 	}
 
 	movie, err := s.repo.GetMovieById(movieId)
 	if err != nil {
-		return fmt.Errorf("%w, %v", customerror.ErrDatabaseError, err)
+		return fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
 	}
 
 	if movie == nil {
@@ -171,7 +175,7 @@ func (s *movieSvc) DeleteMovie(id string) error {
 	}
 
 	if err := s.repo.DeleteMovie(movieId); err != nil {
-		return fmt.Errorf("%w, %v", customerror.ErrDatabaseError, err)
+		return fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
 	}
 
 	return nil
@@ -180,7 +184,7 @@ func (s *movieSvc) DeleteMovie(id string) error {
 // Helper
 func (s *movieSvc) validateBusinessRules(req *dto.CreateMovieRequest) error {
 	if _, err := url.Parse(req.Poster_Url); err != nil {
-		return fmt.Errorf("%w, %v", customerror.ErrInvalidPosterUrl, err)
+		return fmt.Errorf("%w: %v", customerror.ErrInvalidPosterUrl, err)
 	}
 
 	if req.Duration_Minutes < 1 || req.Duration_Minutes > 600 {
@@ -230,7 +234,7 @@ func (s *movieSvc) formatValidationError(err error) error {
 func (s *movieSvc) validateUpdatedMovie(req *dto.UpdateMovieRequest) error {
 	if req.Poster_Url != nil {
 		if _, err := url.Parse(*req.Poster_Url); err != nil {
-			return fmt.Errorf("%w, %v", customerror.ErrInvalidPosterUrl, err)
+			return fmt.Errorf("%w: %v", customerror.ErrInvalidPosterUrl, err)
 		}
 	}
 

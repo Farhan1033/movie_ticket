@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"movie-ticket/infra/postgres"
 	"movie-ticket/internal/movie_module/entities"
 
@@ -25,7 +26,10 @@ func NewMovieRepo() MovieRepository {
 }
 
 func (r *movieRepo) CreateMovies(input *entities.Movies) error {
-	return postgres.DB.Create(input).Error
+	if err := postgres.DB.Create(input).Error; err != nil {
+		return fmt.Errorf("failed to create movie: %w", err)
+	}
+	return nil
 }
 
 func (r *movieRepo) GetMovies() ([]entities.Movies, error) {

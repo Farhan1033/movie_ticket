@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"movie-ticket/config"
-	"movie-ticket/internal/auth_module/entities"
+	"errors"
+	customerror "movie-ticket/internal/auth_module/custom_error"
+	"movie-ticket/internal/auth_module/dto"
 	"movie-ticket/internal/auth_module/services"
 	"net/http"
-	"time"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthHandler struct {
@@ -19,59 +19,92 @@ func NewAuthHandler(r *gin.RouterGroup, svc services.AuthService) {
 	h := AuthHandler{svc: svc}
 	r.POST("/register", h.Register)
 	r.POST("/login", h.Login)
+	r.POST("/logout", h.Logout)
+	r.POST("/refresh", h.RefreshToken)
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
-	var input entities.User
+	var input dto.RegisterRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := h.svc.Register(&input)
+	user, err := h.svc.Register(&input)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		switch {
+		case errors.Is(err, customerror.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, customerror.ErrEmailExist):
+			c.JSON(http.StatusFound, gin.H{"error": err.Error()})
+		case errors.Is(err, customerror.ErrEmailNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Account created successfully"})
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Account created successfully",
+		"data":    user,
+	})
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
-	var input struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
-	type response struct {
-		Message string `json:"message"`
-		Data    any    `json:"data"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var req dto.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	users, err := h.svc.Login(&req)
+	if err != nil {
+		switch {
+		case errors.Is(err, customerror.ErrEmailNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		case errors.Is(err, customerror.ErrWrongPassword):
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		case errors.Is(err, customerror.ErrFailedSession):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": users})
+}
+
+func (c *AuthHandler) Logout(ctx *gin.Context) {
+	// Ambil token dari header
+	authHeader := ctx.GetHeader("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
 		return
 	}
 
-	user, err := h.svc.Login(input.Email, input.Password)
+	token := strings.TrimPrefix(authHeader, "Bearer ")
 
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	}
-
-	claims := jwt.MapClaims{
-		"user_id": user.ID,
-		"role":    user.Role,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString([]byte(config.Get("JWT_SECRET")))
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token"})
+	if err := c.svc.Logout(token); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, response{Message: "Login Successfully", Data: signedToken})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+}
+
+func (c *AuthHandler) RefreshToken(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
+		return
+	}
+
+	oldToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+	response, err := c.svc.RefreshToken(oldToken)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
