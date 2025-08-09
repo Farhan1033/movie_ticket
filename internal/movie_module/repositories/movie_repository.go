@@ -73,7 +73,7 @@ func (r *movieRepo) UpdateMovies(id uuid.UUID, input *entities.Movies) error {
 		"genre":            input.Genre,
 		"duration_minutes": input.Duration_Minutes,
 		"rating":           input.Rating,
-		"postre_url":       input.Poster_Url,
+		"poster_url":       input.Poster_Url,
 	}
 
 	result := postgres.DB.Model(&entities.Movies{}).

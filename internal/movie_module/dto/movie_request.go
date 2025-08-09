@@ -36,3 +36,8 @@ type MovieResponse struct {
 	Created_At       time.Time `json:"created_at"`
 	Updated_At       time.Time `json:"updated_at"`
 }
+
+type MoviesResponse struct {
+	Message string `json:"message"`
+	Data    any    `json:"data"`
+}

@@ -19,8 +19,8 @@ type MoviesService interface {
 	CreateMovie(role string, req *dto.CreateMovieRequest) (*dto.MovieResponse, error)
 	GetMovies(page, limit int) ([]*dto.MovieResponse, error)
 	GetMovieById(id string) (*dto.MovieResponse, error)
-	UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error)
-	DeleteMovie(id string) error
+	UpdateMovie(role, id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error)
+	DeleteMovie(role, id string) error
 }
 
 type movieSvc struct {
@@ -65,16 +65,16 @@ func (s *movieSvc) GetMovies(page, limit int) ([]*dto.MovieResponse, error) {
 func (s *movieSvc) GetMovieById(id string) (*dto.MovieResponse, error) {
 	movieId, err := uuid.Parse(id)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", customerror.ErrInvalidMovieId, err)
+		return nil, fmt.Errorf("%w", customerror.ErrInvalidMovieId)
 	}
 
 	movie, err := s.repo.GetMovieById(movieId)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
+		return nil, fmt.Errorf("%w", customerror.ErrDatabaseError)
 	}
 
 	if movie == nil {
-		return nil, customerror.ErrMovieNotFound
+		return nil, fmt.Errorf("%w: %v", customerror.ErrMovieNotFound, err)
 	}
 
 	return s.toMovieResponse(movie), nil
@@ -121,14 +121,18 @@ func (s *movieSvc) CreateMovie(role string, req *dto.CreateMovieRequest) (*dto.M
 	return s.toMovieResponse(movie), nil
 }
 
-func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error) {
-	movieId, err := uuid.Parse(id)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", customerror.ErrInvalidMovieId, err)
+func (s *movieSvc) UpdateMovie(role, id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error) {
+	if role != "admin" {
+		return nil, fmt.Errorf("%w", customerror.ErrUnauthorizedUser)
 	}
 
-	if req != nil {
-		return nil, customerror.ErrInvalidInput
+	movieId, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("%w", customerror.ErrInvalidMovieId)
+	}
+
+	if req == nil {
+		return nil, fmt.Errorf("%w", customerror.ErrInvalidInput)
 	}
 
 	if err := s.validator.Struct(req); err != nil {
@@ -141,7 +145,7 @@ func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.Mov
 	}
 
 	if existingMovie == nil {
-		return nil, customerror.ErrMovieNotFound
+		return nil, fmt.Errorf("%w: %v", customerror.ErrMovieNotFound, existingMovie)
 	}
 
 	updateMovie := *existingMovie
@@ -159,7 +163,11 @@ func (s *movieSvc) UpdateMovie(id string, req *dto.UpdateMovieRequest) (*dto.Mov
 	return s.toMovieResponse(&updateMovie), nil
 }
 
-func (s *movieSvc) DeleteMovie(id string) error {
+func (s *movieSvc) DeleteMovie(role, id string) error {
+	if role != "admin" {
+		return fmt.Errorf("%w", customerror.ErrUnauthorizedUser)
+	}
+
 	movieId, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("%w: %v", customerror.ErrInvalidMovieId, err)
