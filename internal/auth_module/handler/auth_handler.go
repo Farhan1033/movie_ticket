@@ -61,6 +61,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	claims := jwt.MapClaims{
 		"user_id": user.ID,
+		"role":    user.Role,
 		"exp":     time.Now().Add(24 * time.Hour).Unix(),
 	}
 

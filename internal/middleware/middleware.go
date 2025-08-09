@@ -42,6 +42,12 @@ func JWTAuth() gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
 				return
 			}
+
+			if roleUser, exists := (*claims)["role"]; exists {
+				c.Set("role", roleUser)
+			} else {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Role not found in your token"})
+			}
 		} else {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			return

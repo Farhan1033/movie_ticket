@@ -14,12 +14,13 @@ func InitMovieRoute(r *gin.Engine) {
 	moviesSvc := services.NewMoviesService(movies)
 
 	api := r.Group("/api/v1/")
-	api.Use(middleware.JWTAuth())
+	api.Use(middleware.JWTAuth(), middleware.UserOnly(), middleware.AdminOnly())
 	{
 		handler.NewMoviehandlerUser(api, moviesSvc)
 	}
 
 	apiAdmin := r.Group("/api/v1/admin")
+	api.Use(middleware.JWTAuth(), middleware.AdminOnly())
 	{
 		handler.NewMovieHandlerAdmin(apiAdmin, moviesSvc)
 	}
