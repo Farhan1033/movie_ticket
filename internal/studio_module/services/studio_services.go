@@ -14,7 +14,12 @@ import (
 )
 
 type StudioService interface {
-	Create(req *dto.CreateStudioRequest) (*dto.StudioResponse, error)
+	Create(role string, req *dto.CreateStudioRequest) (*dto.StudioResponse, error)
+	Get() ([]*dto.StudioResponse, error)
+	GetByName(name string) (*dto.StudioResponse, error)
+	GetById(id uuid.UUID) (*dto.StudioResponse, error)
+	Update(id uuid.UUID, input *entities.Studio) error
+	Delete(id uuid.UUID) error
 }
 
 type studioSvc struct {
@@ -29,7 +34,11 @@ func NewStudioService(r repositories.StudioRepository) StudioService {
 	}
 }
 
-func (s *studioSvc) Create(req *dto.CreateStudioRequest) (*dto.StudioResponse, error) {
+func (s *studioSvc) Create(role string, req *dto.CreateStudioRequest) (*dto.StudioResponse, error) {
+	if role != "admin" {
+		return nil, fmt.Errorf("%w", customerror.ErrUnauthorizedUser)
+	}
+
 	if req == nil {
 		return nil, customerror.ErrInvalidInput
 	}
@@ -63,6 +72,29 @@ func (s *studioSvc) Create(req *dto.CreateStudioRequest) (*dto.StudioResponse, e
 
 	return s.toStudioResponse(studios), nil
 }
+
+func (s *studioSvc) Get() ([]*dto.StudioResponse, error) {
+	studios, err := s.repo.Get()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
+	}
+
+	if len(studios) == 0 {
+		return nil, fmt.Errorf("%w", customerror.ErrStudioNotFound)
+	}
+
+	response := make([]*dto.StudioResponse, len(studios))
+	for i, studio := range studios {
+		response[i] = s.toStudioResponse(&studio)
+	}
+
+	return response, nil
+}
+
+func (s *studioSvc) GetByName(name string) (*dto.StudioResponse, error)
+func (s *studioSvc) GetById(id uuid.UUID) (*dto.StudioResponse, error)
+func (s *studioSvc) Update(id uuid.UUID, input *entities.Studio) error
+func (s *studioSvc) Delete(id uuid.UUID) error
 
 // Helper Service
 func (s *studioSvc) toStudioResponse(studio *entities.Studio) *dto.StudioResponse {

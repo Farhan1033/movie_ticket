@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"movie-ticket/infra/postgres"
 	"movie-ticket/internal/studio_module/entities"
 	"time"
@@ -26,7 +27,11 @@ func NewStudioRepo() StudioRepository {
 }
 
 func (r *studioRepo) Create(input *entities.Studio) error {
-	return postgres.DB.Create(&input).Error
+	if err := postgres.DB.Create(&input).Error; err != nil {
+		return fmt.Errorf("failed to create studio: %w", err)
+	}
+
+	return nil
 }
 
 func (r *studioRepo) Get() ([]entities.Studio, error) {
@@ -35,7 +40,7 @@ func (r *studioRepo) Get() ([]entities.Studio, error) {
 	err := postgres.DB.Find(studios).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+		return nil, fmt.Errorf("data not found: %w", err)
 	}
 
 	return studios, nil
@@ -47,7 +52,7 @@ func (r *studioRepo) GetByName(name string) (*entities.Studio, error) {
 	err := postgres.DB.Where("name = ?", name).First(studio).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+		return nil, fmt.Errorf("data not found: %w", err)
 	}
 
 	return studio, nil
@@ -59,7 +64,7 @@ func (r *studioRepo) GetById(id uuid.UUID) (*entities.Studio, error) {
 	err := postgres.DB.Where("id = ?", id).First(studio).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+		return nil, fmt.Errorf("data not found: %w", err)
 	}
 
 	return studio, nil
@@ -78,16 +83,20 @@ func (r *studioRepo) Update(id uuid.UUID, input *entities.Studio) error {
 		Updates(updates)
 
 	if result.Error != nil {
-		return result.Error
+		return fmt.Errorf("failed during data update: %w", result.Error)
 	}
 
 	if result.RowsAffected == 0 {
-		return result.Error
+		return fmt.Errorf("no changed data")
 	}
 
 	return nil
 }
 
 func (r *studioRepo) Delete(id uuid.UUID) error {
-	return postgres.DB.Delete(&entities.Studio{}, "id = ?", id).Error
+	if err := postgres.DB.Delete(&entities.Studio{}, "id = ?", id).Error; err != nil {
+		return fmt.Errorf("failed to delete studio: %w", err)
+	}
+
+	return nil
 }
