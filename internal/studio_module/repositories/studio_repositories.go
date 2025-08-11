@@ -27,7 +27,7 @@ func NewStudioRepo() StudioRepository {
 }
 
 func (r *studioRepo) Create(input *entities.Studio) error {
-	if err := postgres.DB.Create(&input).Error; err != nil {
+	if err := postgres.DB.Create(input).Error; err != nil {
 		return fmt.Errorf("failed to create studio: %w", err)
 	}
 
@@ -37,7 +37,7 @@ func (r *studioRepo) Create(input *entities.Studio) error {
 func (r *studioRepo) Get() ([]entities.Studio, error) {
 	var studios []entities.Studio
 
-	err := postgres.DB.Find(studios).Error
+	err := postgres.DB.Find(&studios).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("data not found: %w", err)
@@ -49,7 +49,7 @@ func (r *studioRepo) Get() ([]entities.Studio, error) {
 func (r *studioRepo) GetByName(name string) (*entities.Studio, error) {
 	var studio *entities.Studio
 
-	err := postgres.DB.Where("name = ?", name).First(studio).Error
+	err := postgres.DB.Where("name = ?", name).First(&studio).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("data not found: %w", err)
@@ -61,7 +61,7 @@ func (r *studioRepo) GetByName(name string) (*entities.Studio, error) {
 func (r *studioRepo) GetById(id uuid.UUID) (*entities.Studio, error) {
 	var studio *entities.Studio
 
-	err := postgres.DB.Where("id = ?", id).First(studio).Error
+	err := postgres.DB.Where("id = ?", id).First(&studio).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("data not found: %w", err)
