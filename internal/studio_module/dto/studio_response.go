@@ -14,3 +14,7 @@ type StudioResponse struct {
 	Created_At    time.Time `json:"created_at"`
 	Updated_At    time.Time `json:"updated_at"`
 }
+
+type ResponseMessage struct {
+	Message string `json:"message"`
+}

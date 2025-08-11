@@ -9,6 +9,5 @@ type CreateStudioRequest struct {
 type UpdateStudioRequest struct {
 	Name          *string `json:"name,omitempty" validate:"omitempty,min=1,max=100"`
 	Seat_Capacity *int    `json:"seat_capacity,omitempty" validate:"omitempty,min=1,max=600"`
-	Location      string  `json:"location,omitempty" validate:"omitempty,min=1"`
+	Location      *string `json:"location,omitempty" validate:"omitempty,min=1"`
 }
-
