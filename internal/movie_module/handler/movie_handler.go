@@ -21,6 +21,7 @@ func NewMovieHandlerAdmin(r *gin.RouterGroup, svc services.MoviesService) {
 	r.POST("/movie/create", h.Create)
 	r.PUT("/movie/update/:id", h.Update)
 	r.DELETE("/movie/delete/:id", h.Delete)
+	r.PATCH("movie/:id/status", h.PatchStatus)
 }
 
 func NewMoviehandlerUser(r *gin.RouterGroup, svc services.MoviesService) {
@@ -171,4 +172,44 @@ func (h *MovieHandler) Delete(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "successfully deleted data"})
+}
+
+func (h *MovieHandler) PatchStatus(c *gin.Context) {
+	var reqStatus dto.StatusMovieRequest
+	idParam := c.Param("id")
+
+	if err := c.ShouldBindJSON(&reqStatus); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		return
+	}
+
+	userRole, err := middleware.GetUserRoleFromRedis(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get session from redis"})
+		return
+	}
+
+	if err := h.svc.PatchStatus(userRole, idParam, &reqStatus); err != nil {
+		switch {
+		case errors.Is(err, customerror.ErrMovieNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		case errors.Is(err, customerror.ErrInvalidMovieId):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, customerror.ErrUnauthorizedUser):
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		case errors.Is(err, customerror.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	// pastikan status tidak nil sebelum akses
+	if reqStatus.Status != nil && !*reqStatus.Status {
+		c.JSON(http.StatusOK, gin.H{"message": "Successfully disabled the film"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully enabled the film"})
 }

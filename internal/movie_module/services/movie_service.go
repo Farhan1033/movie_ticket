@@ -21,6 +21,7 @@ type MoviesService interface {
 	GetMovieById(id string) (*dto.MovieResponse, error)
 	UpdateMovie(role, id string, req *dto.UpdateMovieRequest) (*dto.MovieResponse, error)
 	DeleteMovie(role, id string) error
+	PatchStatus(role, id string, status *dto.StatusMovieRequest) error
 }
 
 type movieSvc struct {
@@ -189,6 +190,37 @@ func (s *movieSvc) DeleteMovie(role, id string) error {
 	return nil
 }
 
+func (s *movieSvc) PatchStatus(role, id string, status *dto.StatusMovieRequest) error {
+	if role != "admin" {
+		return fmt.Errorf("%w", customerror.ErrUnauthorizedUser)
+	}
+
+	parseId, err := uuid.Parse(id)
+	if err != nil {
+		return fmt.Errorf("%w: %v", customerror.ErrInvalidMovieId, err)
+	}
+
+	checkMovie, err := s.repo.GetMovieById(parseId)
+	if err != nil {
+		return fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
+	}
+
+	if checkMovie == nil {
+		return fmt.Errorf("%w", customerror.ErrMovieNotFound)
+	}
+
+	// pastikan status tidak nil
+	if status.Status == nil {
+		return fmt.Errorf("%w", customerror.ErrInvalidInput)
+	}
+
+	if err := s.repo.UpdateStatus(parseId, *status.Status); err != nil {
+		return fmt.Errorf("%w: %v", customerror.ErrDatabaseError, err)
+	}
+
+	return nil
+}
+
 // Helper
 func (s *movieSvc) validateBusinessRules(req *dto.CreateMovieRequest) error {
 	if _, err := url.Parse(req.Poster_Url); err != nil {
@@ -211,6 +243,7 @@ func (s *movieSvc) toMovieResponse(movie *entities.Movies) *dto.MovieResponse {
 		Duration_Minutes: movie.Duration_Minutes,
 		Rating:           movie.Rating,
 		Poster_Url:       movie.Poster_Url,
+		Status:           movie.Status,
 		Created_At:       movie.Created_At,
 		Updated_At:       movie.Updated_At,
 	}

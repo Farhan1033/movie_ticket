@@ -16,7 +16,7 @@ type Schedules struct {
 	EndTime   time.Time `gorm:"not null" json:"end_time"`
 	Price     int       `gorm:"not null" json:"price"`
 	CreatedAt time.Time `gorm:"autoCreateTime;" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoCreateTime; autoUpdateTime" json:"updated_at"`
+	UpdatedAt time.Time `gorm:"autoCreateTime;autoUpdateTime" json:"updated_at"`
 
 	//Relation
 	Movie  entities.Movies `gorm:"foreignKey;MovieID;references:ID" json:"movie"`

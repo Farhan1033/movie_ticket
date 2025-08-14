@@ -24,6 +24,10 @@ type UpdateMovieRequest struct {
 	Poster_Url       *string `json:"poster_url,omitempty" validate:"omitempty,url"`
 }
 
+type StatusMovieRequest struct {
+	Status *bool `json:"status_movie,omitempty" validate:"omitempty,status_movie"`
+}
+
 // Response DTOs
 type MovieResponse struct {
 	ID               uuid.UUID `json:"id"`
@@ -33,6 +37,7 @@ type MovieResponse struct {
 	Duration_Minutes int       `json:"duration_minutes"`
 	Rating           string    `json:"rating"`
 	Poster_Url       string    `json:"poster_url"`
+	Status           bool      `json:"status_movie"`
 	Created_At       time.Time `json:"created_at"`
 	Updated_At       time.Time `json:"updated_at"`
 }

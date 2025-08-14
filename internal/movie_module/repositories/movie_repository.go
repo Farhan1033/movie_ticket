@@ -16,6 +16,7 @@ type MovieRepository interface {
 	GetByTitle(input string) ([]entities.Movies, error)
 	GetMovieById(id uuid.UUID) (*entities.Movies, error)
 	UpdateMovies(id uuid.UUID, input *entities.Movies) error
+	UpdateStatus(id uuid.UUID, status bool) error
 	DeleteMovie(id uuid.UUID) error
 }
 
@@ -93,4 +94,10 @@ func (r *movieRepo) UpdateMovies(id uuid.UUID, input *entities.Movies) error {
 
 func (r *movieRepo) DeleteMovie(id uuid.UUID) error {
 	return postgres.DB.Delete(&entities.Movies{}, "id = ?", id).Error
+}
+
+func (r *movieRepo) UpdateStatus(id uuid.UUID, status bool) error {
+	return postgres.DB.Model(&entities.Movies{}).
+		Where("id = ?", id).
+		Update("status", status).Error
 }
