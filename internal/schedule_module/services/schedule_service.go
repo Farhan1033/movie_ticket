@@ -15,7 +15,7 @@ import (
 )
 
 type ScheduleServices interface {
-	Create(id, role string, req *dto.ScheduleCreateRequest) (*dto.ScheduleResponse, error)
+	Create(role string, req *dto.ScheduleCreateRequest) (*dto.ScheduleResponse, error)
 }
 
 type svcSchedule struct {
@@ -32,7 +32,7 @@ func NewShceduleSvc(r repositories.ScheduleRepository) ScheduleServices {
 	}
 }
 
-func (svc *svcSchedule) Create(id, role string, req *dto.ScheduleCreateRequest) (*dto.ScheduleResponse, error) {
+func (svc *svcSchedule) Create(role string, req *dto.ScheduleCreateRequest) (*dto.ScheduleResponse, error) {
 	if role != "admin" {
 		return nil, fmt.Errorf("%w", customerror.ErrUnauthorizedUser)
 	}
@@ -41,7 +41,23 @@ func (svc *svcSchedule) Create(id, role string, req *dto.ScheduleCreateRequest) 
 		return nil, fmt.Errorf("%w", customerror.ErrInvalidInput)
 	}
 
-	if req.StartTime.String() <= req.EndTime.String() {
+	layout := "15:04" // format jam:menit
+
+	start, err := time.Parse(layout, req.StartTime)
+	if err != nil {
+		return nil, fmt.Errorf("invalid start time format")
+	}
+
+	end, err := time.Parse(layout, req.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("invalid end time format")
+	}
+
+	if !start.Before(end) {
+		return nil, fmt.Errorf("%w", customerror.ErrTimeStart)
+	}
+
+	if start.After(end) || start.Equal(end) {
 		return nil, fmt.Errorf("%w", customerror.ErrTimeStart)
 	}
 
@@ -62,8 +78,8 @@ func (svc *svcSchedule) Create(id, role string, req *dto.ScheduleCreateRequest) 
 		ID:        uuid.New(),
 		MovieID:   req.MovieID,
 		StudioID:  req.StudioID,
-		StartTime: req.StartTime,
-		EndTime:   req.EndTime,
+		StartTime: start.Format(layout),
+		EndTime:   end.Format(layout),
 		Price:     req.Price,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
