@@ -2,6 +2,7 @@ package redis_config
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"movie-ticket/config"
 
@@ -14,8 +15,13 @@ var (
 )
 
 func InitRedis() {
+	redisHost := config.Get("REDIS_HOST")
+	redisPort := config.Get("REDIS_PORT")
+
+	addr := fmt.Sprintf("%s:%s", redisHost, redisPort)
+
 	RedisClient = redis.NewClient(&redis.Options{
-		Addr:     config.Get("REDIS_ADDR"),
+		Addr:     addr,
 		Password: "",
 		DB:       0,
 	})
