@@ -1,22 +1,49 @@
 # Stage 1: Build
-FROM golang:1.20 AS builder
+# Force use Alpine-based Go image
+FROM golang:1.24.4-alpine AS builder
 
 WORKDIR /app
 
+# Install git and other build dependencies (Alpine commands)
+RUN apk add --no-cache git ca-certificates
+
+# Verify Go version
+RUN go version
+
+# Copy go mod files first for better caching
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy source code
 COPY . .
-RUN go build -o server ./cmd/server
+
+# Build the application with optimizations
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -a -installsuffix cgo \
+    -o server ./cmd/server
 
 # Stage 2: Run
-FROM debian:bullseye
+FROM alpine:3.18
+
+# Install ca-certificates for HTTPS calls
+RUN apk --no-cache add ca-certificates tzdata
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
 
 WORKDIR /app
+
+# Copy binary from builder stage
 COPY --from=builder /app/server .
 
-# Install SSL certificates (kalau aplikasi call HTTPS API)
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# Change ownership to non-root user
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
 
 EXPOSE 8080
+
 CMD ["./server"]
