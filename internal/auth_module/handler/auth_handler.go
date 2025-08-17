@@ -42,6 +42,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
+		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -68,6 +69,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": users})
