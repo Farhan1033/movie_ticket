@@ -14,6 +14,7 @@ type ScheduleRepository interface {
 	GetById(id uuid.UUID) (*entities.Schedules, error)
 	Update(id uuid.UUID, req *entities.Schedules) error
 	Delete(id uuid.UUID) error
+	GetSchedulesByStudioID(studioID uuid.UUID) ([]*entities.Schedules, error)
 }
 
 type scheduleRepo struct{}
@@ -84,4 +85,18 @@ func (repo *scheduleRepo) Delete(id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (repo *scheduleRepo) GetSchedulesByStudioID(studioID uuid.UUID) ([]*entities.Schedules, error) {
+	var schedulesByStudioId []*entities.Schedules
+
+	err := postgres.DB.Where("studio_id = ?", studioID).
+		Order("start_time ASC").
+		Find(&schedulesByStudioId).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get schedule: %w", err)
+	}
+
+	return schedulesByStudioId, nil
 }

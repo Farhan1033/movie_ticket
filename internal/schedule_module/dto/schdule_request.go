@@ -16,3 +16,12 @@ type ScheduleCreateRequest struct {
 	CreatedAt time.Time `json:"created_at" validate:"required"`
 	UpdatedAt time.Time `json:"updated_at" validate:"required"`
 }
+
+type ScheduleUpdateRequest struct {
+	MovieID   *uuid.UUID `json:"movie_id,omitempty" validate:"omitempty"`
+	StudioID  *uuid.UUID `json:"studio_id,omitempty" validate:"omitempty"`
+	StartTime *string    `json:"start_time,omitempty" validate:"omitempty"`
+	EndTime   *string    `json:"end_time,omitempty" validate:"omitempty"`
+	Price     *int       `json:"price,omitempty" validate:"omitempty,min=1,max=255"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty" validate:"omitempty"`
+}

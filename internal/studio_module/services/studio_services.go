@@ -47,7 +47,10 @@ func (s *studioSvc) Create(role string, req *dto.CreateStudioRequest) (*dto.Stud
 		return nil, s.formatValidationError(err)
 	}
 
-	existingStudio, _ := s.repo.GetByName(req.Name)
+	existingStudio, err := s.repo.GetByName(req.Name)
+	if err != nil {
+		return nil, customerror.ErrDatabaseError
+	}
 
 	if existingStudio != nil {
 		return nil, customerror.ErrStudioExists

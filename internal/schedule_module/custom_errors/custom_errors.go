@@ -11,4 +11,6 @@ var (
 	ErrUnauthorizedUser  = errors.New("forbidden user")
 	ErrTimeStart         = errors.New("the start time must not be earlier than the end time")
 	ErrInactiveMovie     = errors.New("unable to create a schedule because the movie is inactive")
+	ErrScheduleConflict  = errors.New("do not schedule studio sessions that conflict with each other.")
+	ErrPriceInput        = errors.New("the price of the ticket must not be zero.")
 )

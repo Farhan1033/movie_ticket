@@ -16,3 +16,8 @@ type ScheduleResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type MessageResponse struct {
+	Message string `json:"message"`
+	Data    any    `json:"data"`
+}

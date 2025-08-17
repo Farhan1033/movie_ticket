@@ -21,6 +21,12 @@ func NewScheduleHandlerAdmin(r *gin.RouterGroup, svc *services.ScheduleServices)
 	r.POST("/schedule/create", h.CreateStudio)
 }
 
+func NewShceduleHandlerUser(r *gin.RouterGroup, svc *services.ScheduleServices) {
+	h := ScheduleHandler{svc: *svc}
+	r.GET("/schedule", h.Get)
+	r.GET("/schedule/:id", h.GetById)
+}
+
 func (h *ScheduleHandler) CreateStudio(c *gin.Context) {
 	var reqSchedule *dto.ScheduleCreateRequest
 	role, err := middleware.GetUserRoleFromRedis(c)
@@ -48,6 +54,10 @@ func (h *ScheduleHandler) CreateStudio(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		case errors.Is(err, customerrors.ErrInactiveMovie):
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrScheduleConflict):
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrPriceInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
@@ -55,4 +65,42 @@ func (h *ScheduleHandler) CreateStudio(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"data": schedule})
+}
+
+func (h *ScheduleHandler) Get(c *gin.Context) {
+	schedules, err := h.svc.Get()
+	if err != nil {
+		switch {
+		case errors.Is(err, customerrors.ErrScheduleNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.MessageResponse{
+		Message: "Successfully displaying data",
+		Data:    schedules})
+}
+
+func (h *ScheduleHandler) GetById(c *gin.Context) {
+	id := c.Param("id")
+
+	schedule, err := h.svc.GetById(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, customerrors.ErrScheduleNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.MessageResponse{
+		Message: "Successfully displaying data",
+		Data:    schedule})
 }
