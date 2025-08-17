@@ -46,7 +46,7 @@ func (svc *svcSchedule) Create(role string, req *dto.ScheduleCreateRequest) (*dt
 		return nil, fmt.Errorf("%w", customerror.ErrInvalidInput)
 	}
 
-	layout := "15:04" // format jam:menit
+	layout := "15:04:05" // format jam:menit:detik
 
 	start, err := time.Parse(layout, req.StartTime)
 	if err != nil {
@@ -120,6 +120,7 @@ func (svc *svcSchedule) Create(role string, req *dto.ScheduleCreateRequest) (*dt
 
 	return svc.toScheduleResponse(schedule), nil
 }
+
 func (svc *svcSchedule) Get() ([]*dto.ScheduleResponse, error) {
 	schedules, err := svc.repo.Get()
 	if err != nil {
@@ -173,7 +174,7 @@ func (svc *svcSchedule) Update(role, id string, req *dto.ScheduleUpdateRequest) 
 		return nil, fmt.Errorf("%w", customerror.ErrInvalidScheduleId)
 	}
 
-	layout := "15:04" // format jam:menit
+	layout := "15:04:05" // format jam:menit:detik
 
 	start, err := time.Parse(layout, *req.StartTime)
 	if err != nil {
@@ -212,6 +213,10 @@ func (svc *svcSchedule) Update(role, id string, req *dto.ScheduleUpdateRequest) 
 	}
 
 	for _, s := range existingShedules {
+		if s.ID == idParse {
+			continue
+		}
+
 		existingStart, _ := time.Parse(layout, s.StartTime)
 		existingEnd, _ := time.Parse(layout, s.EndTime)
 

@@ -19,6 +19,8 @@ type ScheduleHandler struct {
 func NewScheduleHandlerAdmin(r *gin.RouterGroup, svc *services.ScheduleServices) {
 	h := ScheduleHandler{svc: *svc}
 	r.POST("/schedule/create", h.CreateStudio)
+	r.PUT("/schedule/update/:id", h.UpdateSchedule)
+	r.DELETE("/schedule/delete/:id", h.DeleteSchedule)
 }
 
 func NewShceduleHandlerUser(r *gin.RouterGroup, svc *services.ScheduleServices) {
@@ -28,7 +30,7 @@ func NewShceduleHandlerUser(r *gin.RouterGroup, svc *services.ScheduleServices) 
 }
 
 func (h *ScheduleHandler) CreateStudio(c *gin.Context) {
-	var reqSchedule *dto.ScheduleCreateRequest
+	var reqSchedule dto.ScheduleCreateRequest
 	role, err := middleware.GetUserRoleFromRedis(c)
 
 	if err != nil {
@@ -41,7 +43,7 @@ func (h *ScheduleHandler) CreateStudio(c *gin.Context) {
 		return
 	}
 
-	schedule, err := h.svc.Create(role, reqSchedule)
+	schedule, err := h.svc.Create(role, &reqSchedule)
 	if err != nil {
 		switch {
 		case errors.Is(err, customerrors.ErrUnauthorizedUser):
@@ -103,4 +105,73 @@ func (h *ScheduleHandler) GetById(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.MessageResponse{
 		Message: "Successfully displaying data",
 		Data:    schedule})
+}
+
+func (h *ScheduleHandler) UpdateSchedule(c *gin.Context) {
+	id := c.Param("id")
+	role, err := middleware.GetUserRoleFromRedis(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized user"})
+		return
+	}
+
+	var req dto.ScheduleUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON: " + err.Error()})
+		return
+	}
+
+	schedule, err := h.svc.Update(role, id, &req)
+	if err != nil {
+		switch {
+		case errors.Is(err, customerrors.ErrUnauthorizedUser):
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrInvalidScheduleId),
+			errors.Is(err, customerrors.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrScheduleNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrTimeStart):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrScheduleConflict):
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrPriceInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.MessageResponse{
+		Message: "Successfully updated schedule",
+		Data:    schedule,
+	})
+}
+
+func (h *ScheduleHandler) DeleteSchedule(c *gin.Context) {
+	id := c.Param("id")
+	role, err := middleware.GetUserRoleFromRedis(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized user"})
+		return
+	}
+
+	if err := h.svc.Delete(role, id); err != nil {
+		switch {
+		case errors.Is(err, customerrors.ErrUnauthorizedUser):
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrInvalidScheduleId):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, customerrors.ErrScheduleNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.MessageResponse{
+		Message: "Successfully deleted schedule",
+	})
 }
