@@ -6,11 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type ReservationCreateRequest struct {
-	UserID     uuid.UUID `json:"user_id" validation:"required"`
-	ScheduleID uuid.UUID `json:"schedule_id" validation:"required"`
-	TotalPrice int       `json:"total_price" validation:"required,min=0"`
-	Status     string    `json:"status" validation:"required"` // PENDING | PAID | CANCELED
+type CreateReservationRequest struct {
+	ScheduleID string   `json:"schedule_id" validate:"required"`
+	Seats      []string `json:"seats" validate:"required"`
+	TotalPrice int      `json:"total_price" validate:"required"`
 }
 
 type ReservationResponse struct {
@@ -26,4 +25,32 @@ type ReservationResponse struct {
 type MessageResponse[T any] struct {
 	Message string `json:"message"`
 	Data    T      `json:"data"`
+}
+
+type ReservationHistory struct {
+	ID         uuid.UUID `json:"id"`
+	UserID     uuid.UUID `json:"user_id"`
+	ScheduleID uuid.UUID `json:"schedule_id"`
+	TotalPrice int       `json:"total_price"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	ExpiresAt  time.Time `json:"expires_at"`
+
+	// Schedule
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+	Price     int    `json:"price"`
+
+	// Movie
+	MovieTitle  string `json:"movie_title"`
+	MovieGenre  string `json:"movie_genre"`
+	MoviePoster string `json:"movie_poster"`
+
+	// Studio
+	StudioName     string `json:"studio_name"`
+	StudioLocation string `json:"studio_location"`
+
+	// Seats (akan diisi manual setelah query kedua)
+	Seats []string `json:"seats"`
 }

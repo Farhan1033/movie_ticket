@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"movie-ticket/internal/reservation_module/dto"
 	"movie-ticket/internal/reservation_module/entities"
 	"time"
 
@@ -14,6 +15,7 @@ type ReservationRepository interface {
 	UpdateStatus(ctx context.Context, reservationID uuid.UUID, status entities.ReservationStatus) error
 	FindByID(ctx context.Context, id uuid.UUID) (*entities.Reservation, error)
 	FindExpiredReservations(ctx context.Context) ([]*entities.Reservation, error)
+	HistoryReservations(ctx context.Context, userID uuid.UUID) ([]*dto.ReservationHistory, error)
 	UpdateExpiredReservations(ctx context.Context) error
 }
 
@@ -90,4 +92,81 @@ func (r *reservationRepository) UpdateExpiredReservations(ctx context.Context) e
 		Model(&entities.Reservation{}).
 		Where("status = ? AND expires_at < ?", entities.StatusPending, time.Now()).
 		Update("status", entities.StatusExpired).Error
+}
+
+func (r *reservationRepository) HistoryReservations(ctx context.Context, userID uuid.UUID) ([]*dto.ReservationHistory, error) {
+	var reservations []*dto.ReservationHistory
+
+	// Tahap 1: Ambil reservasi (tanpa seat)
+	queryReservations := `
+		SELECT 
+			r.id,
+			r.user_id,
+			r.schedule_id,
+			r.total_price,
+			r.status,
+			r.created_at,
+			r.updated_at,
+			r.expires_at,
+
+			s.start_time,
+			s.end_time,
+			s.price,
+
+			m.title AS movie_title,
+			m.genre AS movie_genre,
+			m.poster_url AS movie_poster,
+
+			st.name AS studio_name,
+			st.location AS studio_location
+		FROM reservations r
+		JOIN schedules s ON r.schedule_id = s.id
+		JOIN movies m ON s.movie_id = m.id
+		JOIN studios st ON s.studio_id = st.id
+		WHERE r.user_id = ? 
+		  AND r.status IN ('PENDING', 'CANCEL', 'PAID')
+		ORDER BY r.created_at DESC;
+	`
+
+	if err := r.db.WithContext(ctx).Raw(queryReservations, userID).Scan(&reservations).Error; err != nil {
+		return nil, err
+	}
+
+	if len(reservations) == 0 {
+		return reservations, nil
+	}
+
+	var reservationIDs []uuid.UUID
+	for _, res := range reservations {
+		reservationIDs = append(reservationIDs, res.ID)
+	}
+
+	type SeatRow struct {
+		ReservationID uuid.UUID
+		SeatCode      string
+	}
+	var seatRows []SeatRow
+
+	querySeats := `
+		SELECT reservation_id, seat_code
+		FROM reservation_seats
+		WHERE reservation_id IN ?;
+	`
+
+	if err := r.db.WithContext(ctx).Raw(querySeats, reservationIDs).Scan(&seatRows).Error; err != nil {
+		return nil, err
+	}
+
+	seatsMap := make(map[uuid.UUID][]string)
+	for _, seat := range seatRows {
+		seatsMap[seat.ReservationID] = append(seatsMap[seat.ReservationID], seat.SeatCode)
+	}
+
+	for _, res := range reservations {
+		if seatList, ok := seatsMap[res.ID]; ok {
+			res.Seats = seatList
+		}
+	}
+
+	return reservations, nil
 }

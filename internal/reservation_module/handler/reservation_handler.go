@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	"movie-ticket/internal/reservation_module/services"
+	"movie-ticket/internal/middleware"
+	"movie-ticket/internal/reservation_module/dto"
+	service "movie-ticket/internal/reservation_module/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -20,6 +23,7 @@ func NewReservationHandler(r *gin.RouterGroup, reservationService service.Reserv
 	r.PUT("/reservation/:id/confirm", h.ConfirmReservation)
 	r.PUT("/reservation/:id/cancel", h.CancelReservation)
 	r.GET("/reservation/:id", h.GetReservation)
+	r.GET("/reservation/history", h.GetHistory)
 }
 
 // CreateReservationRequest represents the request payload for creating a reservation
@@ -53,7 +57,7 @@ type SuccessResponse struct {
 
 // ---------------- CREATE RESERVATION ----------------
 func (h *ReservationHandler) CreateReservation(c *gin.Context) {
-	var req CreateReservationRequest
+	var req *dto.CreateReservationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "validation_error",
@@ -63,7 +67,7 @@ func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 	}
 
 	// Validate user ID
-	userID, err := uuid.Parse(req.UserID)
+	userID, err := middleware.GetUserIDFromRedis(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_user_id",
@@ -276,4 +280,21 @@ func (h *ReservationHandler) GetReservation(c *gin.Context) {
 			CreatedAt:  reservation.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		},
 	})
+}
+
+func (h *ReservationHandler) GetHistory(c *gin.Context) {
+	userID, err := middleware.GetUserIDFromRedis(c)
+	fmt.Print(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user_id"})
+		return
+	}
+
+	history, err := h.reservationService.GetHistory(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": history})
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	customerrors "movie-ticket/internal/reservation_module/custom_errors"
+	"movie-ticket/internal/reservation_module/dto"
 	"movie-ticket/internal/reservation_module/entities"
 	repository "movie-ticket/internal/reservation_module/repositories"
 	"time"
@@ -17,6 +19,7 @@ type ReservationService interface {
 	CancelReservation(ctx context.Context, reservationID uuid.UUID) error
 	GetReservation(ctx context.Context, reservationID uuid.UUID) (*entities.Reservation, error)
 	CleanupExpiredReservations(ctx context.Context) error
+	GetHistory(ctx context.Context, userID uuid.UUID) ([]*dto.ReservationHistory, error)
 }
 
 type reservationService struct {
@@ -180,4 +183,17 @@ func extractSeatCodes(reservation *entities.Reservation) []string {
 		seats = append(seats, seat.SeatCode)
 	}
 	return seats
+}
+
+func (s *reservationService) GetHistory(ctx context.Context, userID uuid.UUID) ([]*dto.ReservationHistory, error) {
+	if userID == uuid.Nil {
+		return nil, fmt.Errorf("%w", customerrors.ErrUnauthorizedUser)
+	}
+	history, err := s.reservationRepo.HistoryReservations(ctx, userID)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", customerrors.ErrDatabaseError, err)
+	}
+
+	return history, nil
 }
