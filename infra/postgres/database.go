@@ -6,6 +6,7 @@ import (
 	"movie-ticket/config"
 	user "movie-ticket/internal/auth_module/entities"
 	movie "movie-ticket/internal/movie_module/entities"
+	reservation "movie-ticket/internal/reservation_module/entities"
 	schedule "movie-ticket/internal/schedule_module/entities"
 	studio "movie-ticket/internal/studio_module/entities"
 
@@ -32,7 +33,13 @@ func InitDB() {
 		log.Fatal("failed to connect database :", err)
 	}
 
-	err = DB.AutoMigrate(&user.User{}, &movie.Movies{}, &studio.Studio{}, &schedule.Schedules{})
+	err = DB.AutoMigrate(
+		&user.User{},
+		&movie.Movies{},
+		&studio.Studio{},
+		&schedule.Schedules{},
+		&reservation.Reservation{},
+		&reservation.ReservationSeat{})
 	if err != nil {
 		log.Fatal("failed to migrate :", err)
 	}

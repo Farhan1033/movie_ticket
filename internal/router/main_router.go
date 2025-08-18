@@ -7,4 +7,5 @@ func InitRouter(r *gin.Engine) {
 	InitMovieRoute(r)
 	InitStudioRouter(r)
 	InitialScheduleRouter(r)
+	InitReservationRouter(r)
 }
