@@ -2,6 +2,7 @@ version: "3.8"
 services:
   app:
     build: .
+    image: hans645/movie_ticket:1.0.3
     container_name: movie_ticket
     ports:
       - "8080:8080"
