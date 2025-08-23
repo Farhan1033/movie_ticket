@@ -24,7 +24,7 @@ func NewScheduleRepo() ScheduleRepository {
 }
 
 func (repo *scheduleRepo) Create(req *entities.Schedules) error {
-	if err := postgres.DB.Create(req).Error; err != nil {
+	if err := postgres.DB.Preload("movies").Preload("studios").Create(req).Error; err != nil {
 		return fmt.Errorf("failed to create schedule: %w", err)
 	}
 
@@ -34,7 +34,7 @@ func (repo *scheduleRepo) Create(req *entities.Schedules) error {
 func (repo *scheduleRepo) Get() ([]entities.Schedules, error) {
 	var schedules []entities.Schedules
 
-	err := postgres.DB.Find(&schedules).Error
+	err := postgres.DB.Preload("movies").Preload("studios").Find(&schedules).Error
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get schedule: %w", err)
@@ -46,7 +46,7 @@ func (repo *scheduleRepo) Get() ([]entities.Schedules, error) {
 func (repo *scheduleRepo) GetById(id uuid.UUID) (*entities.Schedules, error) {
 	var schedule entities.Schedules
 
-	err := postgres.DB.Where("id = ?", id).Find(&schedule).Error
+	err := postgres.DB.Preload("movies").Preload("studios").Where("id = ?", id).Find(&schedule).Error
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get schedule: %w", err)
@@ -66,7 +66,7 @@ func (repo *scheduleRepo) Update(id uuid.UUID, req *entities.Schedules) error {
 		"updated_at": req.UpdatedAt,
 	}
 
-	updateSchedule := postgres.DB.Model(&entities.Schedules{}).Where("id = ?", id).Updates(update)
+	updateSchedule := postgres.DB.Model(&entities.Schedules{}).Preload("movies").Preload("studios").Where("id = ?", id).Updates(update)
 
 	if updateSchedule.Error != nil {
 		return fmt.Errorf("failed to updated schedule: %w", updateSchedule.Error)
@@ -90,7 +90,7 @@ func (repo *scheduleRepo) Delete(id uuid.UUID) error {
 func (repo *scheduleRepo) GetSchedulesByStudioID(studioID uuid.UUID) ([]*entities.Schedules, error) {
 	var schedulesByStudioId []*entities.Schedules
 
-	err := postgres.DB.Where("studio_id = ?", studioID).
+	err := postgres.DB.Preload("studios").Where("studio_id = ?", studioID).
 		Order("start_time ASC").
 		Find(&schedulesByStudioId).Error
 

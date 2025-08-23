@@ -7,14 +7,19 @@ import (
 )
 
 type ScheduleResponse struct {
-	ID        uuid.UUID `json:"id"`
-	MovieID   uuid.UUID `json:"movie_id"`
-	StudioID  uuid.UUID `json:"studio_id"`
-	StartTime string    `json:"start_time"`
-	EndTime   string    `json:"end_time"`
-	Price     int       `json:"price"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID             uuid.UUID `json:"id"`
+	MovieTitle     string    `json:"movie_title"`
+	MovieDesc      string    `jsono:"movie_desc"`
+	MovieGenre     string    `json:"movie_genre"`
+	MoviePoster    string    `json:"movie_poster"`
+	MovieRating    string    `json:"movie_rating"`
+	StudioName     string    `json:"studio_name"`
+	StudioLocation string    `json:"studio_location"`
+	StartTime      string    `json:"start_time"`
+	EndTime        string    `json:"end_time"`
+	Price          int       `json:"price"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 type MessageResponse struct {
