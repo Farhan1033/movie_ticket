@@ -47,15 +47,17 @@ func (r *studioRepo) Get() ([]entities.Studio, error) {
 }
 
 func (r *studioRepo) GetByName(name string) (*entities.Studio, error) {
-	var studio *entities.Studio
+	var studio entities.Studio
 
 	err := postgres.DB.Where("name = ?", name).First(&studio).Error
-
-	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, fmt.Errorf("data not found: %w", err)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
 	}
 
-	return studio, nil
+	return &studio, nil
 }
 
 func (r *studioRepo) GetById(id uuid.UUID) (*entities.Studio, error) {
