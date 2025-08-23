@@ -274,11 +274,13 @@ func (svc *svcSchedule) Delete(role, id string) error {
 func (svc *svcSchedule) toScheduleResponse(model *entities.Schedules) *dto.ScheduleResponse {
 	return &dto.ScheduleResponse{
 		ID:             model.ID,
+		MovieId:        model.MovieID,
 		MovieTitle:     model.Movie.Title,
 		MovieDesc:      model.Movie.Description,
 		MovieGenre:     model.Movie.Genre,
 		MoviePoster:    model.Movie.Poster_Url,
 		MovieRating:    model.Movie.Rating,
+		StudioId:       model.StudioID,
 		StudioName:     model.Studio.Name,
 		StudioLocation: model.Studio.Location,
 		StartTime:      model.StartTime,

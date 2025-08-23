@@ -8,11 +8,13 @@ import (
 
 type ScheduleResponse struct {
 	ID             uuid.UUID `json:"id"`
+	MovieId        uuid.UUID `json:"movie_id"`
 	MovieTitle     string    `json:"movie_title"`
 	MovieDesc      string    `json:"movie_desc"`
 	MovieGenre     string    `json:"movie_genre"`
 	MoviePoster    string    `json:"movie_poster"`
 	MovieRating    string    `json:"movie_rating"`
+	StudioId       uuid.UUID `json:"studio_id"`
 	StudioName     string    `json:"studio_name"`
 	StudioLocation string    `json:"studio_location"`
 	StartTime      string    `json:"start_time"`
