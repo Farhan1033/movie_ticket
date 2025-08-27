@@ -4,8 +4,9 @@ FROM golang:1.24.4-alpine AS builder
 
 WORKDIR /app
 
-# Install git and other build dependencies (Alpine commands)
-RUN apk add --no-cache git ca-certificates
+# Install git, swag, dan dependencies
+RUN apk add --no-cache git ca-certificates build-base \
+    && go install github.com/swaggo/swag/cmd/swag@latest
 
 # Verify Go version
 RUN go version
@@ -16,6 +17,9 @@ RUN go mod download
 
 # Copy source code
 COPY . .
+
+# Generate swagger docs (harus ada sebelum go build)
+RUN swag init -g cmd/server/main.go
 
 # Build the application with optimizations
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
@@ -37,6 +41,9 @@ WORKDIR /app
 
 # Copy binary from builder stage
 COPY --from=builder /app/server .
+
+# Copy swagger docs
+COPY --from=builder /app/docs ./docs
 
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
