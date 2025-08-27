@@ -1,0 +1,68 @@
+definitions:
+  dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      password:
+        maxLength: 100
+        minLength: 6
+        type: string
+      phone_number:
+        maxLength: 13
+        minLength: 1
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    - phone_number
+    - role
+    type: object
+info:
+  contact: {}
+paths:
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Membuat akun baru dengan email & password
+      parameters:
+      - description: Register Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "302":
+          description: Found
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register user baru
+      tags:
+      - Auth
+swagger: "2.0"
