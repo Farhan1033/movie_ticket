@@ -23,6 +23,18 @@ func NewAuthHandler(r *gin.RouterGroup, svc services.AuthService) {
 	r.POST("/refresh", h.RefreshToken)
 }
 
+// Register godoc
+// @Summary Register user baru
+// @Description Membuat akun baru dengan email & password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.RegisterRequest true "Register Data"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 302 {object} map[string]interface{} // Email sudah ada
+// @Failure 500 {object} map[string]interface{}
+// @Router /register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var input dto.RegisterRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
