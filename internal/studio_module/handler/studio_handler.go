@@ -29,6 +29,21 @@ func NewStudioHandlerUser(r *gin.RouterGroup, svc *services.StudioService) {
 	r.GET("/studio/:id", h.GetById)
 }
 
+// Create godoc
+// @Summary Membuat studio baru (Admin only)
+// @Description Membuat studio baru dengan informasi nama, kapasitas, dan tipe. Hanya admin yang dapat mengakses endpoint ini
+// @Tags Studios
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param request body dto.CreateStudioRequest true "Studio creation data"
+// @Success 201 {object} map[string]interface{} "Studio created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - User bukan admin"
+// @Failure 406 {object} map[string]interface{} "Not Acceptable - Studio sudah ada"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /admin/studio/create [post]
+// @Security BearerAuth
 func (h *StudioHandler) Create(c *gin.Context) {
 	role, err := middleware.GetUserRoleFromRedis(c)
 	if err != nil {
@@ -59,6 +74,16 @@ func (h *StudioHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, studio)
 }
 
+// Get godoc
+// @Summary Mendapatkan daftar semua studio
+// @Description Mengambil daftar semua studio yang tersedia di bioskop
+// @Tags Studios
+// @Accept json
+// @Produce json
+// @Success 200 {array} map[string]interface{} "Data studio berhasil diambil"
+// @Failure 404 {object} map[string]interface{} "Not Found - Studio tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error - Database error"
+// @Router /studios [get]
 func (h *StudioHandler) Get(c *gin.Context) {
 	studios, err := h.service.Get()
 	if err != nil {
@@ -73,6 +98,18 @@ func (h *StudioHandler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, studios)
 }
 
+// GetByName godoc
+// @Summary Mencari studio berdasarkan nama
+// @Description Mengambil informasi studio berdasarkan nama yang diberikan sebagai query parameter
+// @Tags Studios
+// @Accept json
+// @Produce json
+// @Param name query string true "Nama studio yang dicari"
+// @Success 200 {object} map[string]interface{} "Data studio berhasil diambil"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input atau nama kosong"
+// @Failure 404 {object} map[string]interface{} "Not Found - Studio tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error - Database error"
+// @Router /studio [get]
 func (h *StudioHandler) GetByName(c *gin.Context) {
 	name := c.Query("name")
 	studio, err := h.service.GetByName(name)
@@ -90,6 +127,18 @@ func (h *StudioHandler) GetByName(c *gin.Context) {
 	c.JSON(http.StatusOK, studio)
 }
 
+// GetById godoc
+// @Summary Mendapatkan detail studio berdasarkan ID
+// @Description Mengambil informasi lengkap studio berdasarkan ID yang diberikan
+// @Tags Studios
+// @Accept json
+// @Produce json
+// @Param id path string true "Studio ID" format(uuid)
+// @Success 200 {object} map[string]interface{} "Detail studio berhasil diambil"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid studio ID"
+// @Failure 404 {object} map[string]interface{} "Not Found - Studio tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error - Database error"
+// @Router /studio/{id} [get]
 func (h *StudioHandler) GetById(c *gin.Context) {
 	id := c.Param("id")
 	studio, err := h.service.GetById(id)
@@ -107,6 +156,22 @@ func (h *StudioHandler) GetById(c *gin.Context) {
 	c.JSON(http.StatusOK, studio)
 }
 
+// Update godoc
+// @Summary Update studio (Admin only)
+// @Description Mengupdate informasi studio yang sudah ada. Hanya admin yang dapat mengakses endpoint ini
+// @Tags Studios
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param id path string true "Studio ID" format(uuid)
+// @Param request body dto.UpdateStudioRequest true "Studio update data"
+// @Success 200 {object} map[string]interface{} "Studio updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input atau studio ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - User bukan admin"
+// @Failure 404 {object} map[string]interface{} "Not Found - Studio tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error - Database error"
+// @Router /admin/studio/update/{id} [put]
+// @Security BearerAuth
 func (h *StudioHandler) Update(c *gin.Context) {
 	role, err := middleware.GetUserRoleFromRedis(c)
 	if err != nil {
@@ -139,6 +204,21 @@ func (h *StudioHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, studio)
 }
 
+// Delete godoc
+// @Summary Hapus studio (Admin only)
+// @Description Menghapus studio berdasarkan ID. Hanya admin yang dapat mengakses endpoint ini. Studio yang masih memiliki jadwal aktif tidak dapat dihapus
+// @Tags Studios
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param id path string true "Studio ID" format(uuid)
+// @Success 200 {object} map[string]interface{} "Studio deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input atau studio ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - User bukan admin"
+// @Failure 404 {object} map[string]interface{} "Not Found - Studio tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error - Database error"
+// @Router /admin/studio/delete/{id} [delete]
+// @Security BearerAuth
 func (h *StudioHandler) Delete(c *gin.Context) {
 	role, err := middleware.GetUserRoleFromRedis(c)
 	if err != nil {

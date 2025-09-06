@@ -30,10 +30,11 @@ func NewAuthHandler(r *gin.RouterGroup, svc services.AuthService) {
 // @Accept json
 // @Produce json
 // @Param request body dto.RegisterRequest true "Register Data"
-// @Success 201 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 302 {object} map[string]interface{} // Email sudah ada
-// @Failure 500 {object} map[string]interface{}
+// @Success 201 {object} map[string]interface{} "Account created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input"
+// @Failure 302 {object} map[string]interface{} "Found - Email sudah ada"
+// @Failure 404 {object} map[string]interface{} "Not Found - Email not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
 // @Router /register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var input dto.RegisterRequest
@@ -63,10 +64,24 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Masuk akun dengan email & password untuk mendapatkan access token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Login Data"
+// @Success 200 {object} map[string]interface{} "Login berhasil dengan token"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input atau session gagal"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - Password salah"
+// @Failure 404 {object} map[string]interface{} "Not Found - Email tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	users, err := h.svc.Login(&req)
@@ -87,7 +102,19 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": users})
 }
 
-func (c *AuthHandler) Logout(ctx *gin.Context) {
+// Logout godoc
+// @Summary Logout user
+// @Description Keluar dari akun dan invalidate token yang aktif
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Success 200 {object} map[string]interface{} "Logged out successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid authorization header"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /logout [post]
+// @Security BearerAuth
+func (h *AuthHandler) Logout(ctx *gin.Context) {
 	// Ambil token dari header
 	authHeader := ctx.GetHeader("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
@@ -97,7 +124,7 @@ func (c *AuthHandler) Logout(ctx *gin.Context) {
 
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 
-	if err := c.svc.Logout(token); err != nil {
+	if err := h.svc.Logout(token); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -105,7 +132,20 @@ func (c *AuthHandler) Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }
 
-func (c *AuthHandler) RefreshToken(ctx *gin.Context) {
+// RefreshToken godoc
+// @Summary Refresh access token
+// @Description Mendapatkan access token baru menggunakan token yang masih valid
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Success 200 {object} map[string]interface{} "Token refreshed successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid authorization header"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - Token expired atau invalid"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /refresh [post]
+// @Security BearerAuth
+func (h *AuthHandler) RefreshToken(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
@@ -114,7 +154,7 @@ func (c *AuthHandler) RefreshToken(ctx *gin.Context) {
 
 	oldToken := strings.TrimPrefix(authHeader, "Bearer ")
 
-	response, err := c.svc.RefreshToken(oldToken)
+	response, err := h.svc.RefreshToken(oldToken)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

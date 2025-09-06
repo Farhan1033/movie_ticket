@@ -26,7 +26,6 @@ func NewReservationHandler(r *gin.RouterGroup, reservationService service.Reserv
 	r.GET("/reservation/history", h.GetHistory)
 }
 
-// CreateReservationRequest represents the request payload for creating a reservation
 type CreateReservationRequest struct {
 	UserID     string   `json:"user_id" binding:"required"`
 	ScheduleID string   `json:"schedule_id" binding:"required"`
@@ -55,7 +54,20 @@ type SuccessResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// ---------------- CREATE RESERVATION ----------------
+// CreateReservation godoc
+// @Summary Membuat reservasi tiket baru
+// @Description Membuat reservasi tiket untuk jadwal dan kursi tertentu. Reservasi akan memiliki waktu expired untuk konfirmasi
+// @Tags Reservations
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param request body dto.CreateReservationRequest true "Reservation creation data"
+// @Success 201 {object} SuccessResponse{data=ReservationResponse} "Reservation created successfully"
+// @Failure 400 {object} ErrorResponse "Bad Request - Validation error, invalid user ID, schedule ID, atau seats"
+// @Failure 409 {object} ErrorResponse "Conflict - Seats unavailable atau sudah diambil"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /reservation/create [post]
+// @Security BearerAuth
 func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 	var req *dto.CreateReservationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -66,7 +78,6 @@ func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 		return
 	}
 
-	// Validate user ID
 	userID, err := middleware.GetUserIDFromRedis(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -76,7 +87,6 @@ func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 		return
 	}
 
-	// Validate schedule ID
 	scheduleID, err := uuid.Parse(req.ScheduleID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -86,7 +96,6 @@ func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 		return
 	}
 
-	// Validate seats
 	for _, seat := range req.Seats {
 		if strings.TrimSpace(seat) == "" {
 			c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -97,7 +106,6 @@ func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 		}
 	}
 
-	// Create reservation
 	reservation, err := h.reservationService.CreateReservation(
 		c.Request.Context(),
 		userID,
@@ -130,7 +138,6 @@ func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 		return
 	}
 
-	// Extract seat codes
 	seatCodes := make([]string, 0, len(reservation.Seats))
 	for _, seat := range reservation.Seats {
 		seatCodes = append(seatCodes, seat.SeatCode)
@@ -151,7 +158,20 @@ func (h *ReservationHandler) CreateReservation(c *gin.Context) {
 	})
 }
 
-// ---------------- CONFIRM RESERVATION ----------------
+// ConfirmReservation godoc
+// @Summary Konfirmasi reservasi tiket
+// @Description Mengkonfirmasi reservasi yang sebelumnya dibuat. Reservasi harus dalam status pending dan belum expired
+// @Tags Reservations
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param id path string true "Reservation ID" format(uuid)
+// @Success 200 {object} SuccessResponse "Reservation confirmed successfully"
+// @Failure 400 {object} ErrorResponse "Bad Request - Invalid reservation ID, invalid status transition, atau reservation expired"
+// @Failure 404 {object} ErrorResponse "Not Found - Reservation tidak ditemukan"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /reservation/{id}/confirm [put]
+// @Security BearerAuth
 func (h *ReservationHandler) ConfirmReservation(c *gin.Context) {
 	reservationID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -189,7 +209,20 @@ func (h *ReservationHandler) ConfirmReservation(c *gin.Context) {
 	})
 }
 
-// ---------------- CANCEL RESERVATION ----------------
+// CancelReservation godoc
+// @Summary Membatalkan reservasi tiket
+// @Description Membatalkan reservasi yang sebelumnya dibuat. Kursi yang dibatalkan akan kembali tersedia
+// @Tags Reservations
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param id path string true "Reservation ID" format(uuid)
+// @Success 200 {object} SuccessResponse "Reservation canceled successfully"
+// @Failure 400 {object} ErrorResponse "Bad Request - Invalid reservation ID atau invalid status transition"
+// @Failure 404 {object} ErrorResponse "Not Found - Reservation tidak ditemukan"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /reservation/{id}/cancel [put]
+// @Security BearerAuth
 func (h *ReservationHandler) CancelReservation(c *gin.Context) {
 	reservationID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -224,7 +257,20 @@ func (h *ReservationHandler) CancelReservation(c *gin.Context) {
 	})
 }
 
-// ---------------- GET RESERVATION ----------------
+// GetReservation godoc
+// @Summary Mendapatkan detail reservasi berdasarkan ID
+// @Description Mengambil informasi lengkap reservasi termasuk detail kursi, status, dan waktu expired
+// @Tags Reservations
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param id path string true "Reservation ID" format(uuid)
+// @Success 200 {object} SuccessResponse{data=ReservationResponse} "Reservation retrieved successfully"
+// @Failure 400 {object} ErrorResponse "Bad Request - Missing atau invalid reservation ID"
+// @Failure 404 {object} ErrorResponse "Not Found - Reservation tidak ditemukan"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /reservation/{id} [get]
+// @Security BearerAuth
 func (h *ReservationHandler) GetReservation(c *gin.Context) {
 	reservationIDStr := c.Param("id")
 	if reservationIDStr == "" {
@@ -261,7 +307,6 @@ func (h *ReservationHandler) GetReservation(c *gin.Context) {
 		return
 	}
 
-	// Extract seat codes
 	seatCodes := make([]string, 0, len(reservation.Seats))
 	for _, seat := range reservation.Seats {
 		seatCodes = append(seatCodes, seat.SeatCode)
@@ -282,6 +327,18 @@ func (h *ReservationHandler) GetReservation(c *gin.Context) {
 	})
 }
 
+// GetHistory godoc
+// @Summary Mendapatkan riwayat reservasi user
+// @Description Mengambil semua riwayat reservasi yang pernah dibuat oleh user yang sedang login
+// @Tags Reservations
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Success 200 {object} map[string]interface{} "History retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid user ID"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /reservation/history [get]
+// @Security BearerAuth
 func (h *ReservationHandler) GetHistory(c *gin.Context) {
 	userID, err := middleware.GetUserIDFromRedis(c)
 	fmt.Print(userID)

@@ -18,18 +18,34 @@ type ScheduleHandler struct {
 
 func NewScheduleHandlerAdmin(r *gin.RouterGroup, svc *services.ScheduleServices) {
 	h := ScheduleHandler{svc: *svc}
-	r.POST("/schedule/create", h.CreateStudio)
+	r.POST("/schedule/create", h.CreateSchedule)
 	r.PUT("/schedule/update/:id", h.UpdateSchedule)
 	r.DELETE("/schedule/delete/:id", h.DeleteSchedule)
 }
 
-func NewShceduleHandlerUser(r *gin.RouterGroup, svc *services.ScheduleServices) {
+func NewScheduleHandlerUser(r *gin.RouterGroup, svc *services.ScheduleServices) {
 	h := ScheduleHandler{svc: *svc}
 	r.GET("/schedule", h.Get)
 	r.GET("/schedule/:id", h.GetById)
 }
 
-func (h *ScheduleHandler) CreateStudio(c *gin.Context) {
+// CreateSchedule godoc
+// @Summary Membuat jadwal tayang baru (Admin only)
+// @Description Membuat jadwal tayang baru untuk movie tertentu dengan studio, waktu, dan harga yang ditentukan. Hanya admin yang dapat mengakses endpoint ini
+// @Tags Schedules
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param request body dto.ScheduleCreateRequest true "Schedule creation data"
+// @Success 201 {object} map[string]interface{} "Schedule created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input, waktu mulai, movie tidak aktif, atau harga invalid"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - User bukan admin"
+// @Failure 404 {object} map[string]interface{} "Not Found - Movie tidak ditemukan"
+// @Failure 409 {object} map[string]interface{} "Conflict - Jadwal bertabrakan dengan jadwal lain"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /admin/schedule/create [post]
+// @Security BearerAuth
+func (h *ScheduleHandler) CreateSchedule(c *gin.Context) {
 	var reqSchedule dto.ScheduleCreateRequest
 	role, err := middleware.GetUserRoleFromRedis(c)
 
@@ -69,6 +85,16 @@ func (h *ScheduleHandler) CreateStudio(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": schedule})
 }
 
+// Get godoc
+// @Summary Mendapatkan daftar semua jadwal tayang
+// @Description Mengambil semua jadwal tayang yang tersedia untuk semua movie
+// @Tags Schedules
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.MessageResponse "Data jadwal berhasil diambil"
+// @Failure 404 {object} map[string]interface{} "Not Found - Jadwal tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /schedule [get]
 func (h *ScheduleHandler) Get(c *gin.Context) {
 	schedules, err := h.svc.Get()
 	if err != nil {
@@ -86,6 +112,18 @@ func (h *ScheduleHandler) Get(c *gin.Context) {
 		Data:    schedules})
 }
 
+// GetById godoc
+// @Summary Mendapatkan detail jadwal berdasarkan ID
+// @Description Mengambil informasi lengkap jadwal tayang berdasarkan ID yang diberikan
+// @Tags Schedules
+// @Accept json
+// @Produce json
+// @Param id path string true "Schedule ID" format(uuid)
+// @Success 200 {object} dto.MessageResponse "Detail jadwal berhasil diambil"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid schedule ID"
+// @Failure 404 {object} map[string]interface{} "Not Found - Jadwal tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /schedule/{id} [get]
 func (h *ScheduleHandler) GetById(c *gin.Context) {
 	id := c.Param("id")
 
@@ -107,6 +145,23 @@ func (h *ScheduleHandler) GetById(c *gin.Context) {
 		Data:    schedule})
 }
 
+// UpdateSchedule godoc
+// @Summary Update jadwal tayang (Admin only)
+// @Description Mengupdate informasi jadwal tayang yang sudah ada. Hanya admin yang dapat mengakses endpoint ini
+// @Tags Schedules
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param id path string true "Schedule ID" format(uuid)
+// @Param request body dto.ScheduleUpdateRequest true "Schedule update data"
+// @Success 200 {object} dto.MessageResponse "Schedule updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input, schedule ID, waktu mulai, atau harga"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - User bukan admin"
+// @Failure 404 {object} map[string]interface{} "Not Found - Jadwal tidak ditemukan"
+// @Failure 409 {object} map[string]interface{} "Conflict - Jadwal bertabrakan dengan jadwal lain"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /admin/schedule/update/{id} [put]
+// @Security BearerAuth
 func (h *ScheduleHandler) UpdateSchedule(c *gin.Context) {
 	id := c.Param("id")
 	role, err := middleware.GetUserRoleFromRedis(c)
@@ -149,6 +204,21 @@ func (h *ScheduleHandler) UpdateSchedule(c *gin.Context) {
 	})
 }
 
+// DeleteSchedule godoc
+// @Summary Hapus jadwal tayang (Admin only)
+// @Description Menghapus jadwal tayang berdasarkan ID. Hanya admin yang dapat mengakses endpoint ini
+// @Tags Schedules
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
+// @Param id path string true "Schedule ID" format(uuid)
+// @Success 200 {object} dto.MessageResponse "Schedule deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Bad Request - Invalid schedule ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized - User bukan admin"
+// @Failure 404 {object} map[string]interface{} "Not Found - Jadwal tidak ditemukan"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /admin/schedule/delete/{id} [delete]
+// @Security BearerAuth
 func (h *ScheduleHandler) DeleteSchedule(c *gin.Context) {
 	id := c.Param("id")
 	role, err := middleware.GetUserRoleFromRedis(c)
