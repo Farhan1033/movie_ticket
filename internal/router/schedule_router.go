@@ -22,6 +22,6 @@ func InitialScheduleRouter(c *gin.Engine) {
 	api := c.Group("/api/v1")
 	api.Use(middleware.JwtMiddleware(), middleware.RequireRole("user", "admin"))
 	{
-		handler.NewShceduleHandlerUser(api, &svc)
+		handler.NewScheduleHandlerUser(api, &svc)
 	}
 }
