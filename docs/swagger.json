@@ -927,6 +927,11 @@
         },
         "/movie": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil daftar semua movie yang tersedia dengan dukungan pagination",
                 "consumes": [
                     "application/json"
@@ -939,6 +944,14 @@
                 ],
                 "summary": "Mendapatkan daftar movie dengan pagination",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "minimum": 1,
                         "type": "integer",
@@ -983,6 +996,11 @@
         },
         "/movie/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil informasi lengkap movie berdasarkan ID yang diberikan",
                 "consumes": [
                     "application/json"
@@ -995,6 +1013,14 @@
                 ],
                 "summary": "Mendapatkan detail movie berdasarkan ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "format": "uuid",
@@ -1487,6 +1513,11 @@
         },
         "/schedule": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil semua jadwal tayang yang tersedia untuk semua movie",
                 "consumes": [
                     "application/json"
@@ -1498,6 +1529,16 @@
                     "Schedules"
                 ],
                 "summary": "Mendapatkan daftar semua jadwal tayang",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Data jadwal berhasil diambil",
@@ -1524,6 +1565,11 @@
         },
         "/schedule/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil informasi lengkap jadwal tayang berdasarkan ID yang diberikan",
                 "consumes": [
                     "application/json"
@@ -1536,6 +1582,14 @@
                 ],
                 "summary": "Mendapatkan detail jadwal berdasarkan ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "format": "uuid",
@@ -1578,6 +1632,11 @@
         },
         "/studio": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil informasi studio berdasarkan nama yang diberikan sebagai query parameter",
                 "consumes": [
                     "application/json"
@@ -1590,6 +1649,14 @@
                 ],
                 "summary": "Mencari studio berdasarkan nama",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Nama studio yang dicari",
@@ -1632,6 +1699,11 @@
         },
         "/studio/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil informasi lengkap studio berdasarkan ID yang diberikan",
                 "consumes": [
                     "application/json"
@@ -1644,6 +1716,14 @@
                 ],
                 "summary": "Mendapatkan detail studio berdasarkan ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "format": "uuid",
@@ -1687,6 +1767,11 @@
         },
         "/studios": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil daftar semua studio yang tersedia di bioskop",
                 "consumes": [
                     "application/json"
@@ -1698,6 +1783,16 @@
                     "Studios"
                 ],
                 "summary": "Mendapatkan daftar semua studio",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Data studio berhasil diambil",

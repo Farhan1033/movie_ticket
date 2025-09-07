@@ -894,6 +894,12 @@ paths:
       - application/json
       description: Mengambil daftar semua movie yang tersedia dengan dukungan pagination
       parameters:
+      - default: Bearer <token>
+        description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - default: 1
         description: Nomor halaman
         in: query
@@ -924,6 +930,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Mendapatkan daftar movie dengan pagination
       tags:
       - Movies
@@ -933,6 +941,12 @@ paths:
       - application/json
       description: Mengambil informasi lengkap movie berdasarkan ID yang diberikan
       parameters:
+      - default: Bearer <token>
+        description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Movie ID
         format: uuid
         in: path
@@ -956,6 +970,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Mendapatkan detail movie berdasarkan ID
       tags:
       - Movies
@@ -1267,6 +1283,13 @@ paths:
       consumes:
       - application/json
       description: Mengambil semua jadwal tayang yang tersedia untuk semua movie
+      parameters:
+      - default: Bearer <token>
+        description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1284,6 +1307,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Mendapatkan daftar semua jadwal tayang
       tags:
       - Schedules
@@ -1293,6 +1318,12 @@ paths:
       - application/json
       description: Mengambil informasi lengkap jadwal tayang berdasarkan ID yang diberikan
       parameters:
+      - default: Bearer <token>
+        description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Schedule ID
         format: uuid
         in: path
@@ -1321,6 +1352,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Mendapatkan detail jadwal berdasarkan ID
       tags:
       - Schedules
@@ -1331,6 +1364,12 @@ paths:
       description: Mengambil informasi studio berdasarkan nama yang diberikan sebagai
         query parameter
       parameters:
+      - default: Bearer <token>
+        description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Nama studio yang dicari
         in: query
         name: name
@@ -1359,6 +1398,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Mencari studio berdasarkan nama
       tags:
       - Studios
@@ -1368,6 +1409,12 @@ paths:
       - application/json
       description: Mengambil informasi lengkap studio berdasarkan ID yang diberikan
       parameters:
+      - default: Bearer <token>
+        description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Studio ID
         format: uuid
         in: path
@@ -1397,6 +1444,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Mendapatkan detail studio berdasarkan ID
       tags:
       - Studios
@@ -1405,6 +1454,13 @@ paths:
       consumes:
       - application/json
       description: Mengambil daftar semua studio yang tersedia di bioskop
+      parameters:
+      - default: Bearer <token>
+        description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1425,6 +1481,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - BearerAuth: []
       summary: Mendapatkan daftar semua studio
       tags:
       - Studios

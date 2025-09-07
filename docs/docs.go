@@ -933,6 +933,11 @@ const docTemplate = `{
         },
         "/movie": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil daftar semua movie yang tersedia dengan dukungan pagination",
                 "consumes": [
                     "application/json"
@@ -945,6 +950,14 @@ const docTemplate = `{
                 ],
                 "summary": "Mendapatkan daftar movie dengan pagination",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "minimum": 1,
                         "type": "integer",
@@ -989,6 +1002,11 @@ const docTemplate = `{
         },
         "/movie/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil informasi lengkap movie berdasarkan ID yang diberikan",
                 "consumes": [
                     "application/json"
@@ -1001,6 +1019,14 @@ const docTemplate = `{
                 ],
                 "summary": "Mendapatkan detail movie berdasarkan ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "format": "uuid",
@@ -1493,6 +1519,11 @@ const docTemplate = `{
         },
         "/schedule": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil semua jadwal tayang yang tersedia untuk semua movie",
                 "consumes": [
                     "application/json"
@@ -1504,6 +1535,16 @@ const docTemplate = `{
                     "Schedules"
                 ],
                 "summary": "Mendapatkan daftar semua jadwal tayang",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Data jadwal berhasil diambil",
@@ -1530,6 +1571,11 @@ const docTemplate = `{
         },
         "/schedule/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil informasi lengkap jadwal tayang berdasarkan ID yang diberikan",
                 "consumes": [
                     "application/json"
@@ -1542,6 +1588,14 @@ const docTemplate = `{
                 ],
                 "summary": "Mendapatkan detail jadwal berdasarkan ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "format": "uuid",
@@ -1584,6 +1638,11 @@ const docTemplate = `{
         },
         "/studio": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil informasi studio berdasarkan nama yang diberikan sebagai query parameter",
                 "consumes": [
                     "application/json"
@@ -1596,6 +1655,14 @@ const docTemplate = `{
                 ],
                 "summary": "Mencari studio berdasarkan nama",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Nama studio yang dicari",
@@ -1638,6 +1705,11 @@ const docTemplate = `{
         },
         "/studio/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil informasi lengkap studio berdasarkan ID yang diberikan",
                 "consumes": [
                     "application/json"
@@ -1650,6 +1722,14 @@ const docTemplate = `{
                 ],
                 "summary": "Mendapatkan detail studio berdasarkan ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "format": "uuid",
@@ -1693,6 +1773,11 @@ const docTemplate = `{
         },
         "/studios": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengambil daftar semua studio yang tersedia di bioskop",
                 "consumes": [
                     "application/json"
@@ -1704,6 +1789,16 @@ const docTemplate = `{
                     "Studios"
                 ],
                 "summary": "Mendapatkan daftar semua studio",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003ctoken\u003e",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Data studio berhasil diambil",
