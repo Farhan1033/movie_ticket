@@ -7,9 +7,11 @@ import (
 	redis_config "movie-ticket/infra/redis"
 	"movie-ticket/internal/router"
 	"net/http"
+	"time"
 
 	_ "movie-ticket/docs"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -18,7 +20,7 @@ import (
 // @title Movie Ticket API
 // @version 1.0
 // @description Dokumentasi API untuk aplikasi Movie Ticket
-// @host https://movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080
+// @host movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080
 // @BasePath /api/v1
 func main() {
 	config.LoadEnv()
@@ -30,6 +32,15 @@ func main() {
 	redis_config.InitRedis()
 
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	router.InitRouter(r)
 
