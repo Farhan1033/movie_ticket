@@ -6,6 +6,7 @@ import (
 	"movie-ticket/infra/postgres"
 	redis_config "movie-ticket/infra/redis"
 	"movie-ticket/internal/router"
+	"net/http"
 
 	_ "movie-ticket/docs"
 
@@ -33,6 +34,13 @@ func main() {
 	router.InitRouter(r)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	r.GET("/kaithheathcheck", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "healthy",
+			"message": "Movie Ticket API is running smoothly 🚀",
+		})
+	})
 
 	address := "0.0.0.0:" + config.Get("PORT")
 	log.Printf("Server berjalan di %s", address)
