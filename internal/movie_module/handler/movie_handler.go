@@ -84,12 +84,14 @@ func (h *MovieHandler) Create(c *gin.Context) {
 // @Tags Movies
 // @Accept json
 // @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
 // @Param page query int false "Nomor halaman" default(1) minimum(1)
 // @Param limit query int false "Jumlah data per halaman" default(10) minimum(1) maximum(100)
 // @Success 200 {object} dto.MoviesResponse "Data movie berhasil diambil"
 // @Failure 404 {object} map[string]interface{} "Movie tidak ditemukan"
 // @Failure 500 {object} map[string]interface{} "Internal Server Error"
 // @Router /movie [get]
+// @Security BearerAuth
 func (h *MovieHandler) Get(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
@@ -125,11 +127,13 @@ func (h *MovieHandler) Get(c *gin.Context) {
 // @Tags Movies
 // @Accept json
 // @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
 // @Param id path string true "Movie ID" format(uuid)
 // @Success 200 {object} dto.MoviesResponse "Detail movie berhasil diambil"
 // @Failure 400 {object} map[string]interface{} "Bad Request - Invalid movie ID atau movie tidak ditemukan"
 // @Failure 500 {object} map[string]interface{} "Internal Server Error"
 // @Router /movie/{id} [get]
+// @Security BearerAuth
 func (h *MovieHandler) GetById(c *gin.Context) {
 	idParams := c.Param("id")
 
