@@ -91,10 +91,12 @@ func (h *ScheduleHandler) CreateSchedule(c *gin.Context) {
 // @Tags Schedules
 // @Accept json
 // @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
 // @Success 200 {object} dto.MessageResponse "Data jadwal berhasil diambil"
 // @Failure 404 {object} map[string]interface{} "Not Found - Jadwal tidak ditemukan"
 // @Failure 500 {object} map[string]interface{} "Internal Server Error"
 // @Router /schedule [get]
+// @Security BearerAuth
 func (h *ScheduleHandler) Get(c *gin.Context) {
 	schedules, err := h.svc.Get()
 	if err != nil {
@@ -118,12 +120,14 @@ func (h *ScheduleHandler) Get(c *gin.Context) {
 // @Tags Schedules
 // @Accept json
 // @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
 // @Param id path string true "Schedule ID" format(uuid)
 // @Success 200 {object} dto.MessageResponse "Detail jadwal berhasil diambil"
 // @Failure 400 {object} map[string]interface{} "Bad Request - Invalid schedule ID"
 // @Failure 404 {object} map[string]interface{} "Not Found - Jadwal tidak ditemukan"
 // @Failure 500 {object} map[string]interface{} "Internal Server Error"
 // @Router /schedule/{id} [get]
+// @Security BearerAuth
 func (h *ScheduleHandler) GetById(c *gin.Context) {
 	id := c.Param("id")
 
