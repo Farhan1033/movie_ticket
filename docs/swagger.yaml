@@ -247,7 +247,7 @@ definitions:
         minimum: 1
         type: integer
     type: object
-host: https://movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080
+host: movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080
 info:
   contact: {}
   description: Dokumentasi API untuk aplikasi Movie Ticket

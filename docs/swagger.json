@@ -6,7 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "https://movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080",
+    "host": "movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080",
     "basePath": "/api/v1",
     "paths": {
         "/admin/movie/create": {

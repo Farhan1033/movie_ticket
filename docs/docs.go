@@ -2083,7 +2083,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "https://movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080",
+	Host:             "movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Movie Ticket API",
