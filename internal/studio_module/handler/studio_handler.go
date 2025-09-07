@@ -80,10 +80,12 @@ func (h *StudioHandler) Create(c *gin.Context) {
 // @Tags Studios
 // @Accept json
 // @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
 // @Success 200 {array} map[string]interface{} "Data studio berhasil diambil"
 // @Failure 404 {object} map[string]interface{} "Not Found - Studio tidak ditemukan"
 // @Failure 500 {object} map[string]interface{} "Internal Server Error - Database error"
 // @Router /studios [get]
+// @Security BearerAuth
 func (h *StudioHandler) Get(c *gin.Context) {
 	studios, err := h.service.Get()
 	if err != nil {
@@ -104,12 +106,14 @@ func (h *StudioHandler) Get(c *gin.Context) {
 // @Tags Studios
 // @Accept json
 // @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
 // @Param name query string true "Nama studio yang dicari"
 // @Success 200 {object} map[string]interface{} "Data studio berhasil diambil"
 // @Failure 400 {object} map[string]interface{} "Bad Request - Invalid input atau nama kosong"
 // @Failure 404 {object} map[string]interface{} "Not Found - Studio tidak ditemukan"
 // @Failure 500 {object} map[string]interface{} "Internal Server Error - Database error"
 // @Router /studio [get]
+// @Security BearerAuth
 func (h *StudioHandler) GetByName(c *gin.Context) {
 	name := c.Query("name")
 	studio, err := h.service.GetByName(name)
@@ -133,12 +137,14 @@ func (h *StudioHandler) GetByName(c *gin.Context) {
 // @Tags Studios
 // @Accept json
 // @Produce json
+// @Param Authorization header string true "Bearer token" default(Bearer <token>)
 // @Param id path string true "Studio ID" format(uuid)
 // @Success 200 {object} map[string]interface{} "Detail studio berhasil diambil"
 // @Failure 400 {object} map[string]interface{} "Bad Request - Invalid studio ID"
 // @Failure 404 {object} map[string]interface{} "Not Found - Studio tidak ditemukan"
 // @Failure 500 {object} map[string]interface{} "Internal Server Error - Database error"
 // @Router /studio/{id} [get]
+// @Security BearerAuth
 func (h *StudioHandler) GetById(c *gin.Context) {
 	id := c.Param("id")
 	studio, err := h.service.GetById(id)
