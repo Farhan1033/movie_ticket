@@ -18,7 +18,7 @@ import (
 // @title Movie Ticket API
 // @version 1.0
 // @description Dokumentasi API untuk aplikasi Movie Ticket
-// @host localhost:8080
+// @host https://movieticket-farhan10335643-qxvhtr05.leapcell.dev:8080
 // @BasePath /api/v1
 func main() {
 	config.LoadEnv()
